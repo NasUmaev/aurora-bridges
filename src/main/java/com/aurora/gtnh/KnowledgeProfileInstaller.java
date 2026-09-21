@@ -18,8 +18,8 @@ final class KnowledgeProfileInstaller {
 
     private static final String PROFILE_ID = "vanilla-1.7.10";
     private static final String PROFILE_URL = "https://github.com/NasUmaev/aurora-bridges/releases/download/"
-        + "knowledge-v0.1.0/vanilla-1.7.10-profile-v0.1.0.zip";
-    private static final String PROFILE_SHA256 = "22dc864488f31a461f79f36872ea4c3ab8e6316a61c74021ecf9c549e4ad2a7f";
+        + "knowledge-v0.1.1/vanilla-1.7.10-profile-v0.1.1.zip";
+    private static final String PROFILE_SHA256 = "449be10228e1e8836bfeecb9a09c4008fa2816a9488fa3fda5259bb7802db7f4";
     private static final long MAX_ARCHIVE_BYTES = 16L * 1024L * 1024L;
     private static final long MAX_EXPANDED_BYTES = 32L * 1024L * 1024L;
 
@@ -30,7 +30,7 @@ final class KnowledgeProfileInstaller {
         downloads.mkdirs();
         profiles.mkdirs();
 
-        File archive = new File(downloads, "vanilla-1.7.10-profile-v0.1.0.zip.part");
+        File archive = new File(downloads, "vanilla-1.7.10-profile-v0.1.1.zip.part");
         listener.update("Скачиваю профиль Minecraft 1.7.10…", 0.92D);
         download(archive, listener);
         verifyChecksum(archive);

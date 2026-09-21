@@ -303,7 +303,10 @@ public final class AuroraClient {
     private static String sanitizeForChat(String text) {
         String cleaned = text.replace('\r', ' ')
             .replace('\n', ' ')
-            .replace('§', ' ');
+            .replace('§', ' ')
+            .replace("**", "")
+            .replace("__", "")
+            .replace("`", "");
         return cleaned.length() <= 1000 ? cleaned : cleaned.substring(0, 1000) + "…";
     }
 

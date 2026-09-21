@@ -31,6 +31,7 @@ final class KnowledgeRepository {
     private static final int MAX_ARTICLES = 2000;
     private static final long MAX_ARTICLE_BYTES = 128L * 1024L;
     private static final int MAX_RESULTS = 4;
+    private static final int MIN_RELEVANCE_SCORE = 5;
     private static final JsonParser JSON = new JsonParser();
     private static final Set<String> STOP_WORDS = new HashSet<>(
         Arrays.asList(
@@ -102,7 +103,7 @@ final class KnowledgeRepository {
         List<KnowledgeSearchResult> matches = new ArrayList<>();
         for (KnowledgeArticle article : articles) {
             int score = score(article, tokens, query);
-            if (score > 0) matches.add(new KnowledgeSearchResult(article, score));
+            if (score >= MIN_RELEVANCE_SCORE) matches.add(new KnowledgeSearchResult(article, score));
         }
         matches.sort((left, right) -> Integer.compare(right.getScore(), left.getScore()));
         if (matches.size() > MAX_RESULTS) return new ArrayList<>(matches.subList(0, MAX_RESULTS));

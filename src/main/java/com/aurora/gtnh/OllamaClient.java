@@ -41,6 +41,12 @@ public final class OllamaClient {
     private String complete(String role, String prompt, JsonObject context, List<String> recentChat, int maxTokens)
         throws Exception {
         List<KnowledgeSearchResult> sources = knowledge.search(knowledgeQuery(prompt, context));
+        if ("user".equals(role) && sources.isEmpty() && looksLikeKnowledgeQuestion(prompt)) {
+            String answer = "Я пока не знаю это наверняка: в подключённой базе нет подходящей статьи. "
+                + "Не хочу придумывать и вводить тебя в заблуждение 😅";
+            remember(role, prompt, answer);
+            return answer;
+        }
         JsonArray messages = new JsonArray();
         messages.add(
             message("system", PromptComposer.compose(context, recentChat, knowledge.getActiveProfiles(), sources)));
@@ -89,16 +95,45 @@ public final class OllamaClient {
         answer = cleanAnswer(answer);
         String citation = citation(sources);
         if (!citation.isEmpty()) answer = answer + "\nИсточник: " + citation;
-        history.addLast(message(role, prompt));
-        history.addLast(message("assistant", answer));
-        while (history.size() > 20) history.removeFirst();
+        remember(role, prompt, answer);
         return answer;
     }
 
     private static String cleanAnswer(String answer) {
         return answer.replaceAll("(?is)\\s*(?:источник|источники)\\s*:.*$", "")
             .replaceAll("(?is)</?knowledge[^>]*>", "")
+            .replace("**", "")
+            .replace("__", "")
+            .replace("`", "")
             .trim();
+    }
+
+    private void remember(String role, String prompt, String answer) {
+        history.addLast(message(role, prompt));
+        history.addLast(message("assistant", answer));
+        while (history.size() > 20) history.removeFirst();
+    }
+
+    private static boolean looksLikeKnowledgeQuestion(String prompt) {
+        String value = prompt.toLowerCase(java.util.Locale.ROOT)
+            .trim();
+        if (value.matches("^(?:привет|здравствуй|как дела)[!?. ]*$")) return false;
+        return value.contains("как ") || value.startsWith("как")
+            || value.contains("где ")
+            || value.contains("почему")
+            || value.contains("зачем")
+            || value.contains("сколько")
+            || value.contains("рецепт")
+            || value.contains("скрафт")
+            || value.contains("сделать")
+            || value.contains("получить")
+            || value.contains("добыть")
+            || value.contains("найти")
+            || value.contains("существует")
+            || value.contains("разве")
+            || value.contains("можно ли")
+            || value.contains("не договорил")
+            || value.contains("продолжи");
     }
 
     private static String citation(List<KnowledgeSearchResult> sources) {

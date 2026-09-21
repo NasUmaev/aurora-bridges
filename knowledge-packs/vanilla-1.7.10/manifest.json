@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "profileVersion": "0.1.1",
   "id": "vanilla-1.7.10",
   "displayName": "Minecraft 1.7.10 — базовые знания",
   "minecraftVersion": "1.7.10",
