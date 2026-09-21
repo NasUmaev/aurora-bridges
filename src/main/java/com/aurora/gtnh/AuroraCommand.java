@@ -20,7 +20,7 @@ public final class AuroraCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/aurora <сообщение> | /aurora setup | /aurora memory";
+        return "/aurora <сообщение> | /aurora setup | /aurora memory | /aurora knowledge";
     }
 
     @Override
@@ -47,6 +47,18 @@ public final class AuroraCommand extends CommandBase {
                     sender.addChatMessage(new net.minecraft.util.ChatComponentText("§8• §7" + memory));
                 }
             }
+            return;
+        }
+        if (args.length == 1 && "knowledge".equalsIgnoreCase(args[0])) {
+            List<String> profiles = AuroraClient.knowledgeProfiles();
+            String message = profiles.isEmpty() ? "§d[Аврора] §7Внешние профили знаний не загружены."
+                : "§d[Аврора] §7Профили знаний: " + profiles;
+            sender.addChatMessage(new net.minecraft.util.ChatComponentText(message));
+            return;
+        }
+        if (args.length == 2 && "knowledge".equalsIgnoreCase(args[0]) && "reload".equalsIgnoreCase(args[1])) {
+            AuroraClient.reloadKnowledge();
+            sender.addChatMessage(new net.minecraft.util.ChatComponentText("§d[Аврора] §7Перезагружаю знания…"));
             return;
         }
         AuroraClient.sendPrompt(String.join(" ", args));

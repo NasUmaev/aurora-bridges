@@ -23,6 +23,8 @@ minecraft/
     └── logs/
 ```
 
+Knowledge profiles are deliberately not embedded in the mod JAR or baked into the Ollama model. The mod contains only Aurora's immutable problem-solving rules, profile validation, retrieval, and prompt composition. External profiles live under `minecraft/aurora/profiles/<profile-id>` and can be updated independently.
+
 An interrupted runtime download resumes on the next attempt. Model download progress is shown inside Minecraft.
 
 ## Using the chat
@@ -35,6 +37,8 @@ An interrupted runtime download resumes on the next attempt. Model download prog
 - `/aurora <message>`, `/аврора <message>`, and `/av <message>` remain available as shortcuts.
 - `/aurora setup` reopens the installation screen.
 - `/aurora memory` shows the latest semantic events remembered for the current world.
+- `/aurora knowledge` shows the currently loaded external knowledge profiles.
+- `/aurora knowledge reload` reloads profiles after they are installed or edited.
 
 Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, an optional short recent-chat window, and recent events from the current world's local memory. It observes compact inventory totals once per second but never moves the player, clicks, breaks blocks, or uses the inventory.
 
@@ -71,6 +75,7 @@ The internal mod id remains `aurorabridge` for compatibility with existing insta
 ```text
 src/main/java/com/aurora/gtnh/   Forge client, UI, context, Ollama and installer code
 src/main/resources/              mod metadata and packaged resources
+knowledge-packs/                 external knowledge profiles; never packaged into the mod JAR
 gradle/                          Gradle wrapper support
 docs/                            design and development notes
 ```

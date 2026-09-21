@@ -46,7 +46,8 @@ public final class AuroraClient {
     private final Queue<String> pendingObservations = new ConcurrentLinkedQueue<>();
     private final Deque<String> recentChat = new ArrayDeque<>();
     private final AuroraRuntimeManager runtime = new AuroraRuntimeManager();
-    private final OllamaClient ollama = new OllamaClient();
+    private final KnowledgeRepository knowledge = new KnowledgeRepository();
+    private final OllamaClient ollama = new OllamaClient(knowledge);
     private final AuroraEventObserver observer = new AuroraEventObserver();
     private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
     private final AuroraMemoryStore memory = new AuroraMemoryStore();
@@ -72,7 +73,10 @@ public final class AuroraClient {
             .register(INSTANCE);
         ClientCommandHandler.instance.registerCommand(new AuroraCommand());
         ClientRegistry.registerKeyBinding(INSTANCE.auroraChatKey);
-        IO.execute(INSTANCE.runtime::ensureRunning);
+        IO.execute(() -> {
+            INSTANCE.knowledge.reload();
+            INSTANCE.runtime.ensureRunning();
+        });
         AuroraBridgeMod.LOG.info("Aurora initialized for direct Ollama access at {}", BridgeConfig.ollamaUrl);
     }
 
@@ -274,6 +278,19 @@ public final class AuroraClient {
 
     static List<String> recentMemories() {
         return INSTANCE.memory.recent(8);
+    }
+
+    static void reloadKnowledge() {
+        IO.execute(() -> {
+            INSTANCE.knowledge.reload();
+            List<String> profiles = INSTANCE.knowledge.getActiveProfiles();
+            INSTANCE.replies
+                .add(profiles.isEmpty() ? "Внешние профили знаний не найдены." : "Загружены профили: " + profiles);
+        });
+    }
+
+    static List<String> knowledgeProfiles() {
+        return INSTANCE.knowledge.getActiveProfiles();
     }
 
     private static void handleEvent(AuroraEvent event, Minecraft minecraft) {

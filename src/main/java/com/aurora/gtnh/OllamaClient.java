@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
@@ -20,6 +19,11 @@ public final class OllamaClient {
 
     private static final JsonParser JSON = new JsonParser();
     private final Deque<JsonObject> history = new ArrayDeque<>();
+    private final KnowledgeRepository knowledge;
+
+    OllamaClient(KnowledgeRepository knowledge) {
+        this.knowledge = knowledge;
+    }
 
     public synchronized String answer(String prompt, JsonObject context, List<String> recentChat) throws Exception {
         return complete("user", prompt, context, recentChat, 180);
@@ -34,8 +38,10 @@ public final class OllamaClient {
 
     private String complete(String role, String prompt, JsonObject context, List<String> recentChat, int maxTokens)
         throws Exception {
+        List<KnowledgeSearchResult> sources = knowledge.search(knowledgeQuery(prompt, context));
         JsonArray messages = new JsonArray();
-        messages.add(message("system", systemPrompt(context, recentChat)));
+        messages.add(
+            message("system", PromptComposer.compose(context, recentChat, knowledge.getActiveProfiles(), sources)));
         for (JsonObject previous : history) messages.add(previous);
         messages.add(message(role, prompt));
 
@@ -102,14 +108,26 @@ public final class OllamaClient {
         return message;
     }
 
-    private static String systemPrompt(JsonObject context, List<String> recentChat) {
-        return "Ты Аврора — живая, остроумная подруга и советница игрока в GT New Horizons 2.8.4. "
-            + "Отвечай по-русски, тепло и обычно в 1–3 коротких предложениях. Не выдумывай рецепты и игровые "
-            + "механики: если точных знаний нет, честно скажи, что не уверена. Не управляй персонажем. "
-            + "targetBlock — только блок под прицелом, а не обязательно тема разговора. Текущий снимок: "
-            + context.toString()
-            + ". Недавний игровой чат: "
-            + new ArrayList<>(recentChat).toString();
+    private static String knowledgeQuery(String prompt, JsonObject context) {
+        String lower = prompt.toLowerCase(java.util.Locale.ROOT);
+        if (!(lower.contains("это") || lower.contains("этот")
+            || lower.contains("рук")
+            || lower.contains("передо")
+            || lower.contains("смотр"))) return prompt;
+        StringBuilder query = new StringBuilder(prompt);
+        appendContextName(query, context, "heldItem");
+        appendContextName(query, context, "targetBlock");
+        return query.toString();
+    }
+
+    private static void appendContextName(StringBuilder query, JsonObject context, String field) {
+        if (!context.has(field) || !context.get(field)
+            .isJsonObject()) return;
+        JsonObject object = context.getAsJsonObject(field);
+        if (object.has("name")) query.append(' ')
+            .append(
+                object.get("name")
+                    .getAsString());
     }
 
     private static String read(InputStream stream) throws Exception {
