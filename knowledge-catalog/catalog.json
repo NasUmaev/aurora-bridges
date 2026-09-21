@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "id": "vanilla-1.7.10",
+      "version": "0.1.1",
+      "minecraftVersion": "1.7.10",
+      "url": "https://github.com/NasUmaev/aurora-bridges/releases/download/knowledge-v0.1.1/vanilla-1.7.10-profile-v0.1.1.zip",
+      "sha256": "449be10228e1e8836bfeecb9a09c4008fa2816a9488fa3fda5259bb7802db7f4"
+    }
+  ]
+}

@@ -122,6 +122,21 @@ final class KnowledgeRepository {
         return activeProfiles;
     }
 
+    String getInstalledProfileVersion(String profileId) {
+        if (profileId == null || !profileId.matches("[a-z0-9._-]{1,64}")) return null;
+        File manifestFile = new File(new File(profilesDirectory(), profileId), "manifest.json");
+        if (!manifestFile.isFile() || manifestFile.length() > MAX_ARTICLE_BYTES) return null;
+        try {
+            JsonObject manifest = readJson(manifestFile);
+            if (!profileId.equals(string(manifest, "id", ""))) return null;
+            String version = string(manifest, "profileVersion", "0");
+            return version.matches("[0-9]+(?:\\.[0-9]+){0,3}") ? version : null;
+        } catch (Exception exception) {
+            AuroraBridgeMod.LOG.warn("Could not read installed Aurora profile version for {}", profileId, exception);
+            return null;
+        }
+    }
+
     static File profilesDirectory() {
         return new File(AuroraRuntimeManager.auroraDirectory(), "profiles");
     }

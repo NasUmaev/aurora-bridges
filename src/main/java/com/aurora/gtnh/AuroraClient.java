@@ -47,6 +47,7 @@ public final class AuroraClient {
     private final Deque<String> recentChat = new ArrayDeque<>();
     private final AuroraRuntimeManager runtime = new AuroraRuntimeManager();
     private final KnowledgeRepository knowledge = new KnowledgeRepository();
+    private final KnowledgeCatalogUpdater knowledgeUpdater = new KnowledgeCatalogUpdater();
     private final OllamaClient ollama = new OllamaClient(knowledge);
     private final AuroraEventObserver observer = new AuroraEventObserver();
     private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
@@ -76,6 +77,7 @@ public final class AuroraClient {
         IO.execute(() -> {
             INSTANCE.knowledge.reload();
             INSTANCE.runtime.ensureRunning();
+            INSTANCE.updateKnowledgeFromCatalog(false);
         });
         AuroraBridgeMod.LOG.info("Aurora initialized for direct Ollama access at {}", BridgeConfig.ollamaUrl);
     }
@@ -290,8 +292,27 @@ public final class AuroraClient {
         });
     }
 
+    static void updateKnowledge() {
+        IO.execute(() -> INSTANCE.updateKnowledgeFromCatalog(true));
+    }
+
     static List<String> knowledgeProfiles() {
         return INSTANCE.knowledge.getActiveProfiles();
+    }
+
+    private void updateKnowledgeFromCatalog(boolean reportNoChange) {
+        try {
+            List<String> updated = knowledgeUpdater.updateInstalledProfiles(knowledge);
+            if (!updated.isEmpty()) {
+                knowledge.reload();
+                replies.add("База знаний обновлена: " + updated + ".");
+            } else if (reportNoChange) {
+                replies.add("База знаний уже актуальна.");
+            }
+        } catch (Exception exception) {
+            AuroraBridgeMod.LOG.warn("Could not update Aurora knowledge catalog; using local profiles", exception);
+            if (reportNoChange) replies.add("Не удалось проверить обновления. Продолжаю работать с локальной базой.");
+        }
     }
 
     private static void handleEvent(AuroraEvent event, Minecraft minecraft) {

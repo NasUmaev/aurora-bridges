@@ -20,7 +20,7 @@ public final class AuroraCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/aurora <сообщение> | /aurora setup | /aurora memory | /aurora knowledge";
+        return "/aurora <сообщение> | /aurora setup | /aurora memory | /aurora knowledge [reload|update]";
     }
 
     @Override
@@ -59,6 +59,11 @@ public final class AuroraCommand extends CommandBase {
         if (args.length == 2 && "knowledge".equalsIgnoreCase(args[0]) && "reload".equalsIgnoreCase(args[1])) {
             AuroraClient.reloadKnowledge();
             sender.addChatMessage(new net.minecraft.util.ChatComponentText("§d[Аврора] §7Перезагружаю знания…"));
+            return;
+        }
+        if (args.length == 2 && "knowledge".equalsIgnoreCase(args[0]) && "update".equalsIgnoreCase(args[1])) {
+            AuroraClient.updateKnowledge();
+            sender.addChatMessage(new net.minecraft.util.ChatComponentText("§d[Аврора] §7Проверяю обновления знаний…"));
             return;
         }
         AuroraClient.sendPrompt(String.join(" ", args));

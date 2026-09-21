@@ -26,6 +26,8 @@ minecraft/
 
 Knowledge profiles are deliberately not embedded in the mod JAR or baked into the Ollama model. The mod contains only Aurora's immutable problem-solving rules, profile validation, retrieval, and prompt composition. External profiles live under `minecraft/aurora/profiles/<profile-id>` and can be updated independently. The first-run installer downloads the default vanilla profile as a separate release asset and verifies its pinned SHA-256 checksum before activation.
 
+On later launches Aurora checks the small online catalog in `knowledge-catalog/catalog.json` after the local runtime has started. Only profiles that are already installed are considered for automatic updates. Downloads are restricted to this project's GitHub Releases, verified with the catalog's SHA-256 checksum, unpacked into a staging directory, and activated atomically. If the catalog is unavailable, Aurora silently keeps using the local profile. A cached catalog is stored under `minecraft/aurora/catalog`, while the downloaded profiles remain the offline knowledge cache.
+
 An interrupted runtime download resumes on the next attempt. Model download progress is shown inside Minecraft.
 
 ## Using the chat
@@ -40,6 +42,7 @@ An interrupted runtime download resumes on the next attempt. Model download prog
 - `/aurora memory` shows the latest semantic events remembered for the current world.
 - `/aurora knowledge` shows the currently loaded external knowledge profiles.
 - `/aurora knowledge reload` reloads profiles after they are installed or edited.
+- `/aurora knowledge update` manually checks the online catalog for profile updates.
 
 Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, an optional short recent-chat window, and recent events from the current world's local memory. It observes compact inventory totals once per second but never moves the player, clicks, breaks blocks, or uses the inventory.
 
@@ -77,6 +80,7 @@ The internal mod id remains `aurorabridge` for compatibility with existing insta
 src/main/java/com/aurora/gtnh/   Forge client, UI, context, Ollama and installer code
 src/main/resources/              mod metadata and packaged resources
 knowledge-packs/                 external knowledge profiles; never packaged into the mod JAR
+knowledge-catalog/               online profile catalog published with the repository
 gradle/                          Gradle wrapper support
 docs/                            design and development notes
 ```
