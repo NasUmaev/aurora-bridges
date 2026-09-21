@@ -19,7 +19,7 @@ final class KnowledgeProfileInstaller {
     private static final String PROFILE_ID = "vanilla-1.7.10";
     private static final String PROFILE_URL = "https://github.com/NasUmaev/aurora-bridges/releases/download/"
         + "knowledge-v0.1.0/vanilla-1.7.10-profile-v0.1.0.zip";
-    private static final String PROFILE_SHA256 = "a3f7ab1a07ae870b1609e6c0829120a7dadd3940dfe2b34bfd9043b31357b91c";
+    private static final String PROFILE_SHA256 = "22dc864488f31a461f79f36872ea4c3ab8e6316a61c74021ecf9c549e4ad2a7f";
     private static final long MAX_ARCHIVE_BYTES = 16L * 1024L * 1024L;
     private static final long MAX_EXPANDED_BYTES = 32L * 1024L * 1024L;
 

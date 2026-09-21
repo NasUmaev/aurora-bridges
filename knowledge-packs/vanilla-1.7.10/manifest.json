@@ -4,5 +4,7 @@
   "displayName": "Minecraft 1.7.10 — базовые знания",
   "minecraftVersion": "1.7.10",
   "enabled": true,
-  "requiredMods": []
+  "requiredMods": [],
+  "vanillaOnly": true,
+  "allowedMods": ["aurorabridge", "openalfix"]
 }

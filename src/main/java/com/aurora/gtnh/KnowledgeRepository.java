@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 
 /** Loads versioned knowledge exclusively from external profiles under minecraft/aurora/profiles. */
 final class KnowledgeRepository {
@@ -64,6 +65,7 @@ final class KnowledgeRepository {
     private volatile List<KnowledgeArticle> articles = Collections.emptyList();
     private volatile List<String> activeProfiles = Collections.emptyList();
     private volatile boolean loaded;
+    private volatile boolean installedProfiles;
 
     void reload() {
         List<KnowledgeArticle> loadedArticles = new ArrayList<>();
@@ -73,18 +75,22 @@ final class KnowledgeRepository {
         if (profileDirectories == null) {
             articles = Collections.emptyList();
             activeProfiles = Collections.emptyList();
+            installedProfiles = false;
             loaded = true;
             AuroraBridgeMod.LOG.info("No external Aurora knowledge profiles found in {}", root);
             return;
         }
 
         Arrays.sort(profileDirectories, Comparator.comparing(File::getName));
+        boolean foundManifest = false;
         for (int index = 0; index < Math.min(profileDirectories.length, MAX_PROFILES); index++) {
+            if (new File(profileDirectories[index], "manifest.json").isFile()) foundManifest = true;
             loadProfile(profileDirectories[index], loadedArticles, loadedProfiles);
             if (loadedArticles.size() >= MAX_ARTICLES) break;
         }
         articles = Collections.unmodifiableList(loadedArticles);
         activeProfiles = Collections.unmodifiableList(loadedProfiles);
+        installedProfiles = foundManifest;
         loaded = true;
         AuroraBridgeMod.LOG
             .info("Loaded {} Aurora knowledge articles from profiles {}", loadedArticles.size(), loadedProfiles);
@@ -108,7 +114,7 @@ final class KnowledgeRepository {
     }
 
     boolean needsProfileInstall() {
-        return loaded && !hasProfiles();
+        return loaded && !installedProfiles;
     }
 
     List<String> getActiveProfiles() {
@@ -126,7 +132,8 @@ final class KnowledgeRepository {
             JsonObject manifest = readJson(manifestFile);
             if (integer(manifest, "schemaVersion", 0) != SCHEMA_VERSION) return;
             if (!string(manifest, "minecraftVersion", "").equals("1.7.10")) return;
-            if (!booleanValue(manifest, "enabled", true) || !modsAvailable(manifest)) return;
+            if (!booleanValue(manifest, "enabled", true) || !modsAvailable(manifest) || !environmentMatches(manifest))
+                return;
 
             String id = string(manifest, "id", directory.getName());
             String displayName = string(manifest, "displayName", id);
@@ -226,6 +233,17 @@ final class KnowledgeRepository {
         if (required == null) return true;
         for (JsonElement mod : required) {
             if (!Loader.isModLoaded(mod.getAsString())) return false;
+        }
+        return true;
+    }
+
+    private static boolean environmentMatches(JsonObject manifest) {
+        if (!booleanValue(manifest, "vanillaOnly", false)) return true;
+        Set<String> allowed = new HashSet<>(Arrays.asList("mcp", "FML", "Forge"));
+        allowed.addAll(strings(manifest.getAsJsonArray("allowedMods")));
+        for (ModContainer mod : Loader.instance()
+            .getActiveModList()) {
+            if (!allowed.contains(mod.getModId())) return false;
         }
         return true;
     }
