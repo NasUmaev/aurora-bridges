@@ -1,0 +1,304 @@
+package com.aurora.gtnh;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Locale;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+
+import org.lwjgl.input.Keyboard;
+
+import com.google.gson.JsonObject;
+
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.relauncher.ReflectionHelper;
+
+public final class AuroraClient {
+
+    private static final AuroraClient INSTANCE = new AuroraClient();
+    private static final ExecutorService IO = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "Aurora-Companion-IO");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    private final Queue<String> replies = new ConcurrentLinkedQueue<>();
+    private final Queue<String> pendingObservations = new ConcurrentLinkedQueue<>();
+    private final Deque<String> recentChat = new ArrayDeque<>();
+    private final AuroraRuntimeManager runtime = new AuroraRuntimeManager();
+    private final OllamaClient ollama = new OllamaClient();
+    private final AuroraEventObserver observer = new AuroraEventObserver();
+    private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
+    private final AuroraMemoryStore memory = new AuroraMemoryStore();
+    private final AuroraHudOverlay overlay = new AuroraHudOverlay();
+    private final KeyBinding auroraChatKey = new KeyBinding("Открыть чат Авроры", Keyboard.KEY_V, "Аврора");
+    private final AtomicBoolean requestInFlight = new AtomicBoolean();
+    private boolean inWorld;
+    private boolean readyNoticeShown;
+    private boolean installNoticeShown;
+    private boolean setupScreenOffered;
+    private volatile long worldSession;
+
+    private AuroraClient() {}
+
+    public static void start() {
+        if (!BridgeConfig.enabled) {
+            AuroraBridgeMod.LOG.info("Aurora Companion is disabled in config");
+            return;
+        }
+        MinecraftForge.EVENT_BUS.register(INSTANCE);
+        FMLCommonHandler.instance()
+            .bus()
+            .register(INSTANCE);
+        ClientCommandHandler.instance.registerCommand(new AuroraCommand());
+        ClientRegistry.registerKeyBinding(INSTANCE.auroraChatKey);
+        IO.execute(INSTANCE.runtime::ensureRunning);
+        AuroraBridgeMod.LOG.info("Aurora initialized for direct Ollama access at {}", BridgeConfig.ollamaUrl);
+    }
+
+    @SubscribeEvent
+    public void onIncomingChat(ClientChatReceivedEvent event) {
+        if (event.message == null) return;
+        if (!BridgeConfig.captureIncomingChat) return;
+        synchronized (recentChat) {
+            recentChat.addLast(event.message.getUnformattedText());
+            while (recentChat.size() > 8) recentChat.removeFirst();
+        }
+    }
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (!setupScreenOffered && runtime.getStatus() == AuroraRuntimeManager.Status.NEEDS_INSTALL
+            && isMainMenu(minecraft.currentScreen)) {
+            setupScreenOffered = true;
+            AuroraBridgeMod.LOG.info("Opening Aurora first-run setup screen");
+            minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, runtime));
+        }
+        if (minecraft.thePlayer == null || minecraft.theWorld == null) {
+            if (inWorld) {
+                worldSession++;
+                pendingObservations.clear();
+                replies.clear();
+                overlay.clear();
+                observer.reset();
+                inventoryObserver.reset();
+                memory.leaveWorld();
+                IO.execute(ollama::clearHistory);
+            }
+            inWorld = false;
+            readyNoticeShown = false;
+            installNoticeShown = false;
+            return;
+        }
+
+        memory.enterWorld(minecraft);
+        inWorld = true;
+        handleEvent(observer.observe(minecraft), minecraft);
+        handleEvent(inventoryObserver.observe(minecraft), minecraft);
+        startNextObservation();
+
+        if (!readyNoticeShown && runtime.getStatus() == AuroraRuntimeManager.Status.READY) {
+            readyNoticeShown = true;
+            show("§d[Аврора] §7Я рядом. Нажми V, чтобы поговорить со мной.");
+        }
+
+        if (!installNoticeShown && runtime.getStatus() == AuroraRuntimeManager.Status.NEEDS_INSTALL) {
+            installNoticeShown = true;
+            show("§d[Аврора] §fМне нужен локальный мозг. Скоро здесь появится кнопка установки 💤");
+        }
+
+        String reply;
+        while ((reply = replies.poll()) != null) {
+            String cleaned = sanitizeForChat(reply);
+            AuroraConversation.addAurora(cleaned);
+            overlay.add(cleaned);
+        }
+    }
+
+    @SubscribeEvent
+    public void onItemDestroyed(PlayerDestroyItemEvent event) {
+        if (event.entityPlayer != Minecraft.getMinecraft().thePlayer) return;
+        handleEvent(observer.itemDestroyed(event.original), Minecraft.getMinecraft());
+    }
+
+    @SubscribeEvent
+    public void onKeyInput(cpw.mods.fml.common.gameevent.InputEvent.KeyInputEvent event) {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (auroraChatKey.isPressed() && minecraft.thePlayer != null && minecraft.currentScreen == null) {
+            minecraft.displayGuiScreen(new GuiAuroraChat("", GuiAuroraChat.Tab.AURORA));
+        }
+    }
+
+    @SubscribeEvent
+    public void onGuiOpen(GuiOpenEvent event) {
+        if (!BridgeConfig.replaceVanillaChat) return;
+        if (event.gui instanceof GuiChat && !(event.gui instanceof GuiAuroraChat)) {
+            String initialText = "";
+            try {
+                initialText = ReflectionHelper
+                    .getPrivateValue(GuiChat.class, (GuiChat) event.gui, "field_146409_v", "defaultInputFieldText");
+            } catch (RuntimeException exception) {
+                AuroraBridgeMod.LOG.debug("Could not read initial chat text", exception);
+            }
+            GuiAuroraChat.Tab tab = initialText.startsWith("/") ? GuiAuroraChat.Tab.GAME : GuiAuroraChat.getLastTab();
+            event.gui = new GuiAuroraChat(initialText, tab);
+        }
+    }
+
+    @SubscribeEvent
+    public void onVanillaChatRender(RenderGameOverlayEvent.Chat event) {
+        if (Minecraft.getMinecraft().currentScreen instanceof GuiAuroraChat) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            overlay.render(Minecraft.getMinecraft(), event.resolution);
+        }
+    }
+
+    static void sendPrompt(String prompt) {
+        if (!INSTANCE.requestInFlight.compareAndSet(false, true)) {
+            AuroraConversation.addAurora("Секунду, я ещё думаю над предыдущим сообщением.");
+            return;
+        }
+        JsonObject context;
+        List<String> chat;
+        try {
+            context = ContextSnapshot.capture();
+            INSTANCE.memory.enrich(context);
+            synchronized (INSTANCE.recentChat) {
+                chat = new ArrayList<>(INSTANCE.recentChat);
+            }
+        } catch (RuntimeException exception) {
+            INSTANCE.requestInFlight.set(false);
+            AuroraBridgeMod.LOG.error("Could not capture Aurora context", exception);
+            AuroraConversation.addAurora("Не смогла прочитать состояние мира. Попробуй ещё раз.");
+            return;
+        }
+        AuroraConversation.addPlayer(prompt);
+        long session = INSTANCE.worldSession;
+        IO.execute(() -> {
+            try {
+                if (!INSTANCE.runtime.ensureRunning()) {
+                    if (INSTANCE.worldSession == session) {
+                        INSTANCE.replies.add("Локальная Ollama пока не установлена. Открой экран установки Авроры.");
+                    }
+                    return;
+                }
+                String answer = INSTANCE.ollama.answer(prompt, context, chat);
+                if (INSTANCE.worldSession == session) INSTANCE.replies.add(answer);
+            } catch (Exception exception) {
+                AuroraBridgeMod.LOG.error("Aurora could not answer", exception);
+                if (INSTANCE.worldSession == session) {
+                    INSTANCE.replies.add("Не смогла получить ответ от локальной модели: " + exception.getMessage());
+                }
+            } finally {
+                INSTANCE.requestInFlight.set(false);
+            }
+        });
+    }
+
+    static boolean isThinking() {
+        return INSTANCE.requestInFlight.get();
+    }
+
+    private static void queueObservation(String observation) {
+        if (INSTANCE.pendingObservations.size() < 2) INSTANCE.pendingObservations.add(observation);
+        startNextObservation();
+    }
+
+    private static void startNextObservation() {
+        if (INSTANCE.pendingObservations.isEmpty() || !INSTANCE.requestInFlight.compareAndSet(false, true)) return;
+        String observation = INSTANCE.pendingObservations.poll();
+        if (observation == null) {
+            INSTANCE.requestInFlight.set(false);
+            return;
+        }
+        JsonObject context;
+        List<String> chat;
+        try {
+            context = ContextSnapshot.capture();
+            INSTANCE.memory.enrich(context);
+            synchronized (INSTANCE.recentChat) {
+                chat = new ArrayList<>(INSTANCE.recentChat);
+            }
+        } catch (RuntimeException exception) {
+            INSTANCE.requestInFlight.set(false);
+            AuroraBridgeMod.LOG.debug("Could not capture proactive Aurora context", exception);
+            return;
+        }
+        long session = INSTANCE.worldSession;
+        IO.execute(() -> {
+            try {
+                if (INSTANCE.runtime.ensureRunning()) {
+                    String answer = INSTANCE.ollama.reactToEvent(observation, context, chat);
+                    if (INSTANCE.worldSession == session) INSTANCE.replies.add(answer);
+                }
+            } catch (Exception exception) {
+                AuroraBridgeMod.LOG.warn("Aurora could not react to event: {}", observation, exception);
+            } finally {
+                INSTANCE.requestInFlight.set(false);
+            }
+        });
+    }
+
+    static void openSetup() {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, INSTANCE.runtime));
+    }
+
+    static List<String> recentMemories() {
+        return INSTANCE.memory.recent(8);
+    }
+
+    private static void handleEvent(AuroraEvent event, Minecraft minecraft) {
+        if (event == null) return;
+        INSTANCE.memory.record(event, minecraft);
+        if (event.isReactionRecommended()) queueObservation(event.getSummary());
+    }
+
+    private static String sanitizeForChat(String text) {
+        String cleaned = text.replace('\r', ' ')
+            .replace('\n', ' ')
+            .replace('§', ' ');
+        return cleaned.length() <= 1000 ? cleaned : cleaned.substring(0, 1000) + "…";
+    }
+
+    private static boolean isMainMenu(net.minecraft.client.gui.GuiScreen screen) {
+        if (screen instanceof GuiMainMenu) return true;
+        return screen != null && screen.getClass()
+            .getName()
+            .toLowerCase(Locale.ROOT)
+            .contains("custommainmenu");
+    }
+
+    private static void show(String text) {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (minecraft.thePlayer != null) minecraft.thePlayer.addChatMessage(new ChatComponentText(text));
+    }
+}
