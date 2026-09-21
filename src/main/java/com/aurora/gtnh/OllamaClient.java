@@ -8,7 +8,9 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -84,10 +86,30 @@ public final class OllamaClient {
             .getAsJsonObject("message")
             .get("content")
             .getAsString();
+        answer = cleanAnswer(answer);
+        String citation = citation(sources);
+        if (!citation.isEmpty()) answer = answer + "\nИсточник: " + citation;
         history.addLast(message(role, prompt));
         history.addLast(message("assistant", answer));
         while (history.size() > 20) history.removeFirst();
         return answer;
+    }
+
+    private static String cleanAnswer(String answer) {
+        return answer.replaceAll("(?is)\\s*(?:источник|источники)\\s*:.*$", "")
+            .replaceAll("(?is)</?knowledge[^>]*>", "")
+            .trim();
+    }
+
+    private static String citation(List<KnowledgeSearchResult> sources) {
+        Set<String> labels = new LinkedHashSet<>();
+        for (KnowledgeSearchResult result : sources) {
+            String label = result.getArticle()
+                .getSourceLabel();
+            if (!label.isEmpty()) labels.add(label);
+            if (labels.size() >= 2) break;
+        }
+        return String.join(", ", labels);
     }
 
     public synchronized void clearHistory() {

@@ -30,25 +30,16 @@ final class PromptComposer {
         int index = 1;
         for (KnowledgeSearchResult result : knowledge) {
             KnowledgeArticle article = result.getArticle();
-            prompt.append("\n<knowledge index=\"")
+            prompt.append("\n--- НАЧАЛО ФРАГМЕНТА ")
                 .append(index++)
-                .append("\" profile=\"")
-                .append(safeData(article.getProfile()))
-                .append("\" id=\"")
-                .append(safeData(article.getId()))
-                .append("\">\nНазвание: ")
+                .append(" ---\nНазвание: ")
                 .append(safeData(article.getTitle()))
                 .append("\nДанные: ")
                 .append(safeData(article.getBody()))
-                .append("\nИсточник: ")
-                .append(safeData(article.getSourceLabel()));
-            if (!article.getSourceUrl()
-                .isEmpty())
-                prompt.append(" — ")
-                    .append(safeData(article.getSourceUrl()));
-            prompt.append("\n</knowledge>");
+                .append("\n--- КОНЕЦ ФРАГМЕНТА ---");
         }
-        prompt.append("\nОтвечай на основании подходящих фрагментов. В конце кратко назови использованный источник.");
+        prompt.append(
+            "\nОтвечай на основании подходящих фрагментов. Не создавай ссылку и не печатай источник: мод покажет его отдельно.");
         return prompt.toString();
     }
 
