@@ -14,6 +14,8 @@ final class PromptComposer {
         StringBuilder prompt = new StringBuilder(AuroraCoreDirective.text());
         prompt.append("\n\nТекущий снимок игры: ")
             .append(context);
+        prompt.append(
+            "\nПоля heldItem и targetBlock описывают предмет в руке и блок под прицелом; они не обязательно являются темой вопроса.");
         prompt.append("\nНедавний игровой чат: ")
             .append(new ArrayList<>(recentChat));
         prompt.append("\nАктивные внешние профили знаний: ")
@@ -31,22 +33,27 @@ final class PromptComposer {
             prompt.append("\n<knowledge index=\"")
                 .append(index++)
                 .append("\" profile=\"")
-                .append(article.getProfile())
+                .append(safeData(article.getProfile()))
                 .append("\" id=\"")
-                .append(article.getId())
+                .append(safeData(article.getId()))
                 .append("\">\nНазвание: ")
-                .append(article.getTitle())
+                .append(safeData(article.getTitle()))
                 .append("\nДанные: ")
-                .append(article.getBody())
+                .append(safeData(article.getBody()))
                 .append("\nИсточник: ")
-                .append(article.getSourceLabel());
+                .append(safeData(article.getSourceLabel()));
             if (!article.getSourceUrl()
                 .isEmpty())
                 prompt.append(" — ")
-                    .append(article.getSourceUrl());
+                    .append(safeData(article.getSourceUrl()));
             prompt.append("\n</knowledge>");
         }
         prompt.append("\nОтвечай на основании подходящих фрагментов. В конце кратко назови использованный источник.");
         return prompt.toString();
+    }
+
+    private static String safeData(String value) {
+        return value.replace('<', '‹')
+            .replace('>', '›');
     }
 }

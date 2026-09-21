@@ -94,11 +94,12 @@ public final class AuroraClient {
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         Minecraft minecraft = Minecraft.getMinecraft();
-        if (!setupScreenOffered && runtime.getStatus() == AuroraRuntimeManager.Status.NEEDS_INSTALL
+        if (!setupScreenOffered
+            && (runtime.getStatus() == AuroraRuntimeManager.Status.NEEDS_INSTALL || knowledge.needsProfileInstall())
             && isMainMenu(minecraft.currentScreen)) {
             setupScreenOffered = true;
             AuroraBridgeMod.LOG.info("Opening Aurora first-run setup screen");
-            minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, runtime));
+            minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, runtime, knowledge));
         }
         if (minecraft.thePlayer == null || minecraft.theWorld == null) {
             if (inWorld) {
@@ -273,7 +274,7 @@ public final class AuroraClient {
 
     static void openSetup() {
         Minecraft minecraft = Minecraft.getMinecraft();
-        minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, INSTANCE.runtime));
+        minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, INSTANCE.runtime, INSTANCE.knowledge));
     }
 
     static List<String> recentMemories() {

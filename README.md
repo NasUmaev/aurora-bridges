@@ -20,10 +20,11 @@ minecraft/
     ├── downloads/
     ├── runtime/
     ├── models/
+    ├── profiles/
     └── logs/
 ```
 
-Knowledge profiles are deliberately not embedded in the mod JAR or baked into the Ollama model. The mod contains only Aurora's immutable problem-solving rules, profile validation, retrieval, and prompt composition. External profiles live under `minecraft/aurora/profiles/<profile-id>` and can be updated independently.
+Knowledge profiles are deliberately not embedded in the mod JAR or baked into the Ollama model. The mod contains only Aurora's immutable problem-solving rules, profile validation, retrieval, and prompt composition. External profiles live under `minecraft/aurora/profiles/<profile-id>` and can be updated independently. The first-run installer downloads the default vanilla profile as a separate release asset and verifies its pinned SHA-256 checksum before activation.
 
 An interrupted runtime download resumes on the next attempt. Model download progress is shown inside Minecraft.
 

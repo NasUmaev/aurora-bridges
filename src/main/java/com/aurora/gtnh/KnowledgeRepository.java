@@ -63,6 +63,7 @@ final class KnowledgeRepository {
 
     private volatile List<KnowledgeArticle> articles = Collections.emptyList();
     private volatile List<String> activeProfiles = Collections.emptyList();
+    private volatile boolean loaded;
 
     void reload() {
         List<KnowledgeArticle> loadedArticles = new ArrayList<>();
@@ -72,6 +73,7 @@ final class KnowledgeRepository {
         if (profileDirectories == null) {
             articles = Collections.emptyList();
             activeProfiles = Collections.emptyList();
+            loaded = true;
             AuroraBridgeMod.LOG.info("No external Aurora knowledge profiles found in {}", root);
             return;
         }
@@ -83,6 +85,7 @@ final class KnowledgeRepository {
         }
         articles = Collections.unmodifiableList(loadedArticles);
         activeProfiles = Collections.unmodifiableList(loadedProfiles);
+        loaded = true;
         AuroraBridgeMod.LOG
             .info("Loaded {} Aurora knowledge articles from profiles {}", loadedArticles.size(), loadedProfiles);
     }
@@ -102,6 +105,10 @@ final class KnowledgeRepository {
 
     boolean hasProfiles() {
         return !activeProfiles.isEmpty();
+    }
+
+    boolean needsProfileInstall() {
+        return loaded && !hasProfiles();
     }
 
     List<String> getActiveProfiles() {

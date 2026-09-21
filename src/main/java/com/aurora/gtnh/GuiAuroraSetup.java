@@ -9,15 +9,17 @@ public final class GuiAuroraSetup extends GuiScreen {
 
     private final GuiScreen parent;
     private final AuroraRuntimeManager runtime;
+    private final KnowledgeRepository knowledge;
     private volatile String status = "Готова к установке";
     private volatile double progress;
     private volatile boolean installing;
     private volatile boolean complete;
     private volatile String error = "";
 
-    public GuiAuroraSetup(GuiScreen parent, AuroraRuntimeManager runtime) {
+    public GuiAuroraSetup(GuiScreen parent, AuroraRuntimeManager runtime, KnowledgeRepository knowledge) {
         this.parent = parent;
         this.runtime = runtime;
+        this.knowledge = knowledge;
     }
 
     @Override
@@ -45,7 +47,7 @@ public final class GuiAuroraSetup extends GuiScreen {
         setButtonsEnabled(false);
         Thread worker = new Thread(() -> {
             try {
-                new AuroraInstaller(runtime).install((message, value) -> {
+                new AuroraInstaller(runtime, knowledge).install((message, value) -> {
                     status = message;
                     progress = Math.max(0.0D, Math.min(1.0D, value));
                 });
@@ -78,7 +80,7 @@ public final class GuiAuroraSetup extends GuiScreen {
         drawCenteredString(fontRendererObj, "Аврора внутри GT New Horizons", width / 2, height / 2 - 82, 0xE26BFF);
         drawCenteredString(
             fontRendererObj,
-            "Для локальной работы нужно скачать Ollama и модель (~5 ГБ).",
+            "Установщик подготовит Ollama, модель и внешний профиль знаний (~5 ГБ).",
             width / 2,
             height / 2 - 55,
             0xFFFFFF);

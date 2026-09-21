@@ -26,9 +26,11 @@ public final class AuroraInstaller {
     private static final JsonParser JSON = new JsonParser();
 
     private final AuroraRuntimeManager runtime;
+    private final KnowledgeRepository knowledge;
 
-    public AuroraInstaller(AuroraRuntimeManager runtime) {
+    public AuroraInstaller(AuroraRuntimeManager runtime, KnowledgeRepository knowledge) {
         this.runtime = runtime;
+        this.knowledge = knowledge;
     }
 
     public void install(ProgressListener listener) throws Exception {
@@ -38,30 +40,37 @@ public final class AuroraInstaller {
             throw new IllegalStateException("Автоматическая установка пока поддерживает только macOS");
         }
 
-        File root = AuroraRuntimeManager.auroraDirectory();
-        File downloads = new File(root, "downloads");
-        File runtimeDirectory = new File(root, "runtime");
-        downloads.mkdirs();
-        runtimeDirectory.mkdirs();
+        File archive = null;
+        if (!runtime.ensureRunning()) {
+            File root = AuroraRuntimeManager.auroraDirectory();
+            File downloads = new File(root, "downloads");
+            File runtimeDirectory = new File(root, "runtime");
+            downloads.mkdirs();
+            runtimeDirectory.mkdirs();
 
-        File archive = new File(downloads, "Ollama-darwin.zip.part");
-        listener.update("Скачиваю официальный Ollama runtime…", 0.01D);
-        downloadRuntime(archive, listener);
+            archive = new File(downloads, "Ollama-darwin.zip.part");
+            listener.update("Скачиваю официальный Ollama runtime…", 0.01D);
+            downloadRuntime(archive, listener);
 
-        listener.update("Распаковываю Ollama…", 0.36D);
-        extractWithDitto(archive, runtimeDirectory);
-        verifySignature(new File(runtimeDirectory, "Ollama.app"));
-        File executable = AuroraRuntimeManager.portableExecutable();
-        if (!executable.setExecutable(true) && !executable.canExecute()) {
-            throw new IllegalStateException("Не удалось разрешить запуск Ollama");
+            listener.update("Распаковываю Ollama…", 0.36D);
+            extractWithDitto(archive, runtimeDirectory);
+            verifySignature(new File(runtimeDirectory, "Ollama.app"));
+            File executable = AuroraRuntimeManager.portableExecutable();
+            if (!executable.setExecutable(true) && !executable.canExecute()) {
+                throw new IllegalStateException("Не удалось разрешить запуск Ollama");
+            }
+
+            listener.update("Запускаю локальную Ollama…", 0.42D);
+            if (!runtime.ensureRunning()) throw new IllegalStateException(runtime.getDetail());
+        } else {
+            listener.update("Локальная Ollama уже готова", 0.42D);
         }
-
-        listener.update("Запускаю локальную Ollama…", 0.42D);
-        if (!runtime.ensureRunning()) throw new IllegalStateException(runtime.getDetail());
 
         listener.update("Скачиваю модель " + BridgeConfig.ollamaModel + "…", 0.45D);
         pullModel(listener);
-        archive.delete();
+        new KnowledgeProfileInstaller().install(listener);
+        knowledge.reload();
+        if (archive != null) archive.delete();
         listener.update("Аврора готова!", 1.0D);
     }
 
@@ -168,7 +177,7 @@ public final class AuroraInstaller {
                     long completed = event.has("completed") ? event.get("completed")
                         .getAsLong() : 0L;
                     double modelProgress = total > 0L ? (double) completed / (double) total : 0.0D;
-                    listener.update(status, 0.45D + modelProgress * 0.54D);
+                    listener.update(status, 0.45D + modelProgress * 0.45D);
                     if ("success".equalsIgnoreCase(status)) complete = true;
                 }
             }
