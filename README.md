@@ -46,6 +46,8 @@ An interrupted runtime download resumes on the next attempt. Model download prog
 
 Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, an optional short recent-chat window, and recent events from the current world's local memory. It observes compact inventory totals once per second but never moves the player, clicks, breaks blocks, or uses the inventory.
 
+Recipe questions are resolved against the registries of the running game before they reach Ollama. Crafting-table and furnace recipes work directly through Minecraft and Forge without NEI. When NEI is installed, Aurora discovers it at runtime and also reads the crafting handlers registered by NEI and its add-ons; NEI remains an optional integration and is not a required dependency. Only a small number of recipes relevant to the question are passed to the model.
+
 Aurora can also notice five important events by herself: death, critical health, catching fire, changing dimension, and breaking an item. These checks compare a few player-state values and do not scan loaded chunks. Proactive replies are rate-limited and briefly appear over the game while Aurora's chat is closed. Events are stored separately for each world in a bounded local journal under `minecraft/aurora/memory`; journal writing runs away from the game thread.
 
 Inventory memory records aggregate gains and losses. Consecutive changes are compacted after one quiet sample, so repeated item use becomes one entry and a quick drop-and-pickup pair cancels out. Moving stacks between inventory slots, equipping armor, or changing a tool's durability does not create an event. At this stage inventory changes are remembered silently; later interpretation can distinguish crafting, placing, consuming, dropping, and container transfers.
@@ -104,6 +106,8 @@ The vanilla profile's generated recipe layer is rebuilt from Minecraft and Forge
 ```
 
 The development-only exporter lives in the test source set and is never included in the distributable mod. It writes thematic `crafting/` and `smelting/` packages below `knowledge-packs/vanilla-1.7.10/knowledge`; curated guides remain alongside them.
+
+The live reader has a development smoke test that starts Forge and verifies active crafting and furnace recipes with `./gradlew --no-daemon spotlessApply runClient -PauroraTestRecipeReader`.
 
 ## Current scope
 

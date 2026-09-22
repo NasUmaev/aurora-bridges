@@ -16,6 +16,18 @@ public final class ClientProxy extends CommonProxy {
                 .exitJava(0, false);
             return;
         }
+        if (Boolean.getBoolean("aurora.testRecipeReader")) {
+            try {
+                Class<?> test = Class.forName("com.aurora.gtnh.LiveRecipeReaderSmokeTest");
+                test.getMethod("main", String[].class)
+                    .invoke(null, (Object) new String[0]);
+            } catch (Exception exception) {
+                throw new IllegalStateException("Could not test the live recipe reader", exception);
+            }
+            cpw.mods.fml.common.FMLCommonHandler.instance()
+                .exitJava(0, false);
+            return;
+        }
         AuroraClient.start();
     }
 }
