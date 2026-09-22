@@ -1,0 +1,19 @@
+{
+  "id": "crafting-minecraft-stone_pressure_plate-0",
+  "title": "Крафт: Нажимная плита",
+  "aliases": [
+    "Нажимная плита",
+    "Pressure Plate",
+    "minecraft:stone_pressure_plate",
+    "как сделать Нажимная плита",
+    "рецепт Нажимная плита"
+  ],
+  "tags": [
+    "крафт",
+    "Minecraft 1.7.10",
+    "Камень"
+  ],
+  "body": "Форменный рецепт 2×1. Результат: Нажимная плита. Сетка сверху вниз: [Камень | Камень].",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

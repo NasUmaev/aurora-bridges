@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-gold_ingot-0",
+  "title": "Переплавка: Золотой слиток",
+  "aliases": [
+    "Золотой слиток",
+    "Gold Ingot",
+    "minecraft:gold_ingot",
+    "как сделать Золотой слиток",
+    "рецепт Золотой слиток",
+    "Золотая руда",
+    "Gold Ore",
+    "minecraft:gold_ore"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Золотая руда. Результат: Золотой слиток. Опыт: 1.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

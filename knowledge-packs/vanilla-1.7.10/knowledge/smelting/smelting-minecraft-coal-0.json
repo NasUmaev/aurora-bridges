@@ -1,0 +1,20 @@
+{
+  "id": "smelting-minecraft-coal-0",
+  "title": "Переплавка: Уголь",
+  "aliases": [
+    "Уголь",
+    "Coal",
+    "minecraft:coal",
+    "как сделать Уголь",
+    "рецепт Уголь",
+    "Coal Ore",
+    "minecraft:coal_ore"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Уголь. Результат: Уголь. Опыт: 0.1.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

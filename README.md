@@ -97,9 +97,17 @@ Use a full JDK supported by the current GTNH development toolchain:
 
 The installable artifact is `build/libs/aurorabridge-0.1.0.jar`. The build performs formatting, Checkstyle, compilation, Java 8-compatible reobfuscation, and packaging. Minecraft itself can continue to use the Java version required by the target GTNH package.
 
+The vanilla profile's generated recipe layer is rebuilt from Minecraft and Forge's real runtime registries, including Ore Dictionary alternatives and the official Russian and English language assets:
+
+```sh
+./gradlew --no-daemon spotlessApply runClient -PauroraGenerateKnowledge
+```
+
+The development-only exporter lives in the test source set and is never included in the distributable mod. It writes thematic `crafting/` and `smelting/` packages below `knowledge-packs/vanilla-1.7.10/knowledge`; curated guides remain alongside them.
+
 ## Current scope
 
-This is a macOS client-side MVP with a dedicated two-tab chat and the first persistent per-world event-memory layer. GTNH knowledge retrieval, inventory-difference understanding, places, and long-term summaries remain later stages.
+This is a macOS client-side MVP with a dedicated two-tab chat, persistent per-world event memory, and an independently updatable vanilla 1.7.10 knowledge profile. The profile currently covers the real crafting and furnace registries plus a small curated starter layer. Mechanics, mobs, biomes, structures, enchantments, progression guides, GTNH knowledge, inventory-difference understanding, places, and long-term summaries remain later stages.
 
 ## Primary references
 

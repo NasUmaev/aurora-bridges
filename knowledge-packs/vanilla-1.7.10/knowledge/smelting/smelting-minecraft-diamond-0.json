@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-diamond-0",
+  "title": "Переплавка: Алмаз",
+  "aliases": [
+    "Алмаз",
+    "Diamond",
+    "minecraft:diamond",
+    "как сделать Алмаз",
+    "рецепт Алмаз",
+    "Алмазная руда",
+    "Diamond Ore",
+    "minecraft:diamond_ore"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Алмазная руда. Результат: Алмаз. Опыт: 1.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

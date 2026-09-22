@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-brick-0",
+  "title": "Переплавка: Кирпич",
+  "aliases": [
+    "Кирпич",
+    "Brick",
+    "minecraft:brick",
+    "как сделать Кирпич",
+    "рецепт Кирпич",
+    "Глина",
+    "Clay",
+    "minecraft:clay_ball"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Глина. Результат: Кирпич. Опыт: 0.3.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

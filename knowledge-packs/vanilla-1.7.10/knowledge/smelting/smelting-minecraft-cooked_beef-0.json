@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-cooked_beef-0",
+  "title": "Переплавка: Стейк",
+  "aliases": [
+    "Стейк",
+    "Steak",
+    "minecraft:cooked_beef",
+    "как сделать Стейк",
+    "рецепт Стейк",
+    "Сырая говядина",
+    "Raw Beef",
+    "minecraft:beef"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Сырая говядина. Результат: Стейк. Опыт: 0.35.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

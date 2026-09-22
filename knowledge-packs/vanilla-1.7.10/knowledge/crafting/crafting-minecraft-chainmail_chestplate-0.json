@@ -1,0 +1,19 @@
+{
+  "id": "crafting-minecraft-chainmail_chestplate-0",
+  "title": "Крафт: Кольчуга",
+  "aliases": [
+    "Кольчуга",
+    "Chain Chestplate",
+    "minecraft:chainmail_chestplate",
+    "как сделать Кольчуга",
+    "рецепт Кольчуга"
+  ],
+  "tags": [
+    "крафт",
+    "Minecraft 1.7.10",
+    "Огонь"
+  ],
+  "body": "Форменный рецепт 3×3. Результат: Кольчуга. Сетка сверху вниз: [Огонь | пусто | Огонь] / [Огонь | Огонь | Огонь] / [Огонь | Огонь | Огонь].",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

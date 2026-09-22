@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-hardened_clay-0",
+  "title": "Переплавка: Обожжёная глина",
+  "aliases": [
+    "Обожжёная глина",
+    "Hardened Clay",
+    "minecraft:hardened_clay",
+    "как сделать Обожжёная глина",
+    "рецепт Обожжёная глина",
+    "Глина",
+    "Clay",
+    "minecraft:clay"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Глина. Результат: Обожжёная глина. Опыт: 0.35.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

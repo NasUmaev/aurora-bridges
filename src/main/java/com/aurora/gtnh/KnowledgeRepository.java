@@ -154,11 +154,9 @@ final class KnowledgeRepository {
             String id = string(manifest, "id", directory.getName());
             String displayName = string(manifest, "displayName", id);
             File knowledge = new File(directory, "knowledge");
-            File[] files = knowledge.listFiles(
-                file -> file.isFile() && file.getName()
-                    .endsWith(".json"));
-            if (files == null) return;
-            Arrays.sort(files, Comparator.comparing(File::getName));
+            List<File> files = new ArrayList<>();
+            collectArticleFiles(knowledge, knowledge, files, 0);
+            files.sort(Comparator.comparing(File::getPath));
             int before = result.size();
             for (File file : files) {
                 if (result.size() >= MAX_ARTICLES || file.length() > MAX_ARTICLE_BYTES) break;
@@ -168,6 +166,27 @@ final class KnowledgeRepository {
             if (result.size() > before) profiles.add(displayName);
         } catch (Exception exception) {
             AuroraBridgeMod.LOG.warn("Could not load Aurora knowledge profile {}", directory, exception);
+        }
+    }
+
+    private static void collectArticleFiles(File root, File directory, List<File> result, int depth) throws Exception {
+        if (depth > 4 || result.size() >= MAX_ARTICLES || java.nio.file.Files.isSymbolicLink(directory.toPath()))
+            return;
+        String canonicalRoot = root.getCanonicalPath() + File.separator;
+        String canonicalDirectory = directory.getCanonicalPath() + File.separator;
+        if (!canonicalDirectory.startsWith(canonicalRoot)) return;
+        File[] children = directory.listFiles();
+        if (children == null) return;
+        Arrays.sort(children, Comparator.comparing(File::getName));
+        for (File child : children) {
+            if (result.size() >= MAX_ARTICLES) break;
+            if (java.nio.file.Files.isSymbolicLink(child.toPath())) continue;
+            if (child.isDirectory()) {
+                collectArticleFiles(root, child, result, depth + 1);
+            } else if (child.isFile() && child.getName()
+                .endsWith(".json")) {
+                    result.add(child);
+                }
         }
     }
 

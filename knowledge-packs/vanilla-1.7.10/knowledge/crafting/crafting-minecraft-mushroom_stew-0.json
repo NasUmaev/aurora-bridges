@@ -1,0 +1,20 @@
+{
+  "id": "crafting-minecraft-mushroom_stew-0",
+  "title": "Крафт: Тушеные грибы",
+  "aliases": [
+    "Тушеные грибы",
+    "Mushroom Stew",
+    "minecraft:mushroom_stew",
+    "как сделать Тушеные грибы",
+    "рецепт Тушеные грибы"
+  ],
+  "tags": [
+    "крафт",
+    "Minecraft 1.7.10",
+    "Гриб",
+    "Миска"
+  ],
+  "body": "Бесформенный рецепт. Соедини: Гриб ×2, Миска. Результат: Тушеные грибы.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

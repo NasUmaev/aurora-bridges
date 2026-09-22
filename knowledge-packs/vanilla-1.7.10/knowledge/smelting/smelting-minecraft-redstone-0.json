@@ -1,0 +1,21 @@
+{
+  "id": "smelting-minecraft-redstone-0",
+  "title": "Переплавка: Красная пыль",
+  "aliases": [
+    "Красная пыль",
+    "Redstone",
+    "minecraft:redstone",
+    "как сделать Красная пыль",
+    "рецепт Красная пыль",
+    "Красная руда",
+    "Redstone Ore",
+    "minecraft:redstone_ore"
+  ],
+  "tags": [
+    "переплавка",
+    "Minecraft 1.7.10"
+  ],
+  "body": "Помести в верхнюю ячейку печи: Красная руда. Результат: Красная пыль. Опыт: 0.7.",
+  "sourceLabel": "Minecraft 1.7.10 — игровые реестры",
+  "sourceUrl": ""
+}

@@ -3,10 +3,10 @@
   "profiles": [
     {
       "id": "vanilla-1.7.10",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "minecraftVersion": "1.7.10",
-      "url": "https://github.com/NasUmaev/aurora-bridges/releases/download/knowledge-v0.1.1/vanilla-1.7.10-profile-v0.1.1.zip",
-      "sha256": "449be10228e1e8836bfeecb9a09c4008fa2816a9488fa3fda5259bb7802db7f4"
+      "url": "https://github.com/NasUmaev/aurora-bridges/releases/download/knowledge-v0.2.0/vanilla-1.7.10-profile-v0.2.0.zip",
+      "sha256": "e9e0cb68d955135bb73af448b10d53bf3695e5b265d1fa84a00e617b31c8932f"
     }
   ]
 }
