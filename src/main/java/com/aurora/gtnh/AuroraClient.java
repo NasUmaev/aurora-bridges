@@ -49,8 +49,6 @@ public final class AuroraClient {
     private final KnowledgeRepository knowledge = new KnowledgeRepository();
     private final KnowledgeCatalogUpdater knowledgeUpdater = new KnowledgeCatalogUpdater();
     private final LiveRecipeReader recipes = new LiveRecipeReader();
-    private final ForgeBlockDropReader blockDrops = new ForgeBlockDropReader();
-    private final MobsInfoDropReader mobDrops = new MobsInfoDropReader();
     private final OllamaClient ollama = new OllamaClient(knowledge);
     private final AuroraEventObserver observer = new AuroraEventObserver();
     private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
@@ -199,12 +197,10 @@ public final class AuroraClient {
         JsonObject context;
         List<String> chat;
         String activeRecipes;
-        String activeDrops;
         try {
             context = ContextSnapshot.capture();
             INSTANCE.memory.enrich(context);
             activeRecipes = INSTANCE.recipes.find(prompt, context);
-            activeDrops = joinFacts(INSTANCE.blockDrops.find(prompt, context), INSTANCE.mobDrops.find(prompt, context));
             synchronized (INSTANCE.recentChat) {
                 chat = new ArrayList<>(INSTANCE.recentChat);
             }
@@ -224,7 +220,7 @@ public final class AuroraClient {
                     }
                     return;
                 }
-                String answer = INSTANCE.ollama.answer(prompt, context, chat, activeRecipes, activeDrops);
+                String answer = INSTANCE.ollama.answer(prompt, context, chat, activeRecipes);
                 if (INSTANCE.worldSession == session) INSTANCE.replies.add(answer);
             } catch (Exception exception) {
                 AuroraBridgeMod.LOG.error("Aurora could not answer", exception);
@@ -336,12 +332,6 @@ public final class AuroraClient {
             .replace("__", "")
             .replace("`", "");
         return cleaned.length() <= 1000 ? cleaned : cleaned.substring(0, 1000) + "…";
-    }
-
-    private static String joinFacts(String first, String second) {
-        if (first.isEmpty()) return second;
-        if (second.isEmpty()) return first;
-        return first + "\n" + second;
     }
 
     private static boolean isMainMenu(net.minecraft.client.gui.GuiScreen screen) {
