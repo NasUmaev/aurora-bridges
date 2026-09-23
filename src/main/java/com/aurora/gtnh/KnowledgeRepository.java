@@ -28,8 +28,9 @@ final class KnowledgeRepository {
 
     private static final int SCHEMA_VERSION = 1;
     private static final int MAX_PROFILES = 16;
-    private static final int MAX_ARTICLES = 2000;
+    private static final int MAX_ARTICLES = 50000;
     private static final long MAX_ARTICLE_BYTES = 128L * 1024L;
+    private static final long MAX_PROFILE_BYTES = 64L * 1024L * 1024L;
     private static final int MAX_RESULTS = 4;
     private static final int MIN_RELEVANCE_SCORE = 5;
     private static final JsonParser JSON = new JsonParser();
@@ -63,13 +64,13 @@ final class KnowledgeRepository {
             "этот",
             "я"));
 
-    private volatile List<KnowledgeArticle> articles = Collections.emptyList();
+    private volatile List<IndexedArticle> articles = Collections.emptyList();
     private volatile List<String> activeProfiles = Collections.emptyList();
     private volatile boolean loaded;
     private volatile boolean installedProfiles;
 
     void reload() {
-        List<KnowledgeArticle> loadedArticles = new ArrayList<>();
+        List<IndexedArticle> loadedArticles = new ArrayList<>();
         List<String> loadedProfiles = new ArrayList<>();
         File root = profilesDirectory();
         File[] profileDirectories = root.listFiles(File::isDirectory);
@@ -83,15 +84,13 @@ final class KnowledgeRepository {
         }
 
         Arrays.sort(profileDirectories, Comparator.comparing(File::getName));
-        boolean foundManifest = false;
         for (int index = 0; index < Math.min(profileDirectories.length, MAX_PROFILES); index++) {
-            if (new File(profileDirectories[index], "manifest.json").isFile()) foundManifest = true;
             loadProfile(profileDirectories[index], loadedArticles, loadedProfiles);
             if (loadedArticles.size() >= MAX_ARTICLES) break;
         }
         articles = Collections.unmodifiableList(loadedArticles);
         activeProfiles = Collections.unmodifiableList(loadedProfiles);
-        installedProfiles = foundManifest;
+        installedProfiles = !loadedProfiles.isEmpty();
         loaded = true;
         AuroraBridgeMod.LOG
             .info("Loaded {} Aurora knowledge articles from profiles {}", loadedArticles.size(), loadedProfiles);
@@ -101,17 +100,13 @@ final class KnowledgeRepository {
         Set<String> tokens = tokens(query);
         if (tokens.isEmpty()) return Collections.emptyList();
         List<KnowledgeSearchResult> matches = new ArrayList<>();
-        for (KnowledgeArticle article : articles) {
-            int score = score(article, tokens, query);
-            if (score >= MIN_RELEVANCE_SCORE) matches.add(new KnowledgeSearchResult(article, score));
+        for (IndexedArticle indexed : articles) {
+            int score = score(indexed, tokens, query);
+            if (score >= MIN_RELEVANCE_SCORE) matches.add(new KnowledgeSearchResult(indexed.article, score));
         }
         matches.sort((left, right) -> Integer.compare(right.getScore(), left.getScore()));
         if (matches.size() > MAX_RESULTS) return new ArrayList<>(matches.subList(0, MAX_RESULTS));
         return matches;
-    }
-
-    boolean hasProfiles() {
-        return !activeProfiles.isEmpty();
     }
 
     boolean needsProfileInstall() {
@@ -130,7 +125,7 @@ final class KnowledgeRepository {
             JsonObject manifest = readJson(manifestFile);
             if (!profileId.equals(string(manifest, "id", ""))) return null;
             String version = string(manifest, "profileVersion", "0");
-            return version.matches("[0-9]+(?:\\.[0-9]+){0,3}") ? version : null;
+            return KnowledgeProfileDescriptor.isValidVersion(version) ? version : null;
         } catch (Exception exception) {
             AuroraBridgeMod.LOG.warn("Could not read installed Aurora profile version for {}", profileId, exception);
             return null;
@@ -141,7 +136,7 @@ final class KnowledgeRepository {
         return new File(AuroraRuntimeManager.auroraDirectory(), "profiles");
     }
 
-    private static void loadProfile(File directory, List<KnowledgeArticle> result, List<String> profiles) {
+    private static void loadProfile(File directory, List<IndexedArticle> result, List<String> profiles) {
         File manifestFile = new File(directory, "manifest.json");
         if (!manifestFile.isFile() || manifestFile.length() > MAX_ARTICLE_BYTES) return;
         try {
@@ -152,16 +147,37 @@ final class KnowledgeRepository {
                 return;
 
             String id = string(manifest, "id", directory.getName());
+            if (!id.matches("[a-z0-9._-]{1,64}") || !id.equals(directory.getName())) return;
             String displayName = string(manifest, "displayName", id);
             File knowledge = new File(directory, "knowledge");
             List<File> files = new ArrayList<>();
             collectArticleFiles(knowledge, knowledge, files, 0);
             files.sort(Comparator.comparing(File::getPath));
             int before = result.size();
+            long loadedBytes = 0L;
+            Set<String> articleIds = new HashSet<>();
             for (File file : files) {
-                if (result.size() >= MAX_ARTICLES || file.length() > MAX_ARTICLE_BYTES) break;
-                KnowledgeArticle article = readArticle(id, file);
-                if (article != null) result.add(article);
+                if (result.size() >= MAX_ARTICLES) break;
+                long length = file.length();
+                if (length <= 0L || length > MAX_ARTICLE_BYTES) {
+                    AuroraBridgeMod.LOG.warn("Ignoring invalid-sized Aurora knowledge article {}", file);
+                    continue;
+                }
+                loadedBytes += length;
+                if (loadedBytes > MAX_PROFILE_BYTES) {
+                    AuroraBridgeMod.LOG.warn("Aurora knowledge profile {} exceeds the size limit", id);
+                    break;
+                }
+                try {
+                    KnowledgeArticle article = readArticle(id, file);
+                    if (article == null || !articleIds.add(article.getId())) {
+                        AuroraBridgeMod.LOG.warn("Ignoring empty or duplicate Aurora knowledge article {}", file);
+                        continue;
+                    }
+                    result.add(new IndexedArticle(article));
+                } catch (Exception exception) {
+                    AuroraBridgeMod.LOG.warn("Ignoring malformed Aurora knowledge article {}", file, exception);
+                }
             }
             if (result.size() > before) profiles.add(displayName);
         } catch (Exception exception) {
@@ -197,29 +213,22 @@ final class KnowledgeRepository {
         String body = string(json, "body", "");
         if (id.isEmpty() || title.isEmpty() || body.isEmpty()) return null;
         return new KnowledgeArticle(
-            profile,
             id,
             title,
             strings(json.getAsJsonArray("aliases")),
             strings(json.getAsJsonArray("tags")),
             body,
-            string(json, "sourceLabel", profile),
-            safeUrl(string(json, "sourceUrl", "")));
+            string(json, "sourceLabel", profile));
     }
 
-    private static int score(KnowledgeArticle article, Set<String> queryTokens, String rawQuery) {
-        String normalizedTitle = normalize(article.getTitle());
+    private static int score(IndexedArticle article, Set<String> queryTokens, String rawQuery) {
         String normalizedQuery = normalize(rawQuery);
-        int score = contains(normalizedTitle, normalizedQuery) || contains(normalizedQuery, normalizedTitle) ? 20 : 0;
-        Set<String> title = tokens(article.getTitle());
-        Set<String> aliases = tokens(String.join(" ", article.getAliases()));
-        Set<String> tags = tokens(String.join(" ", article.getTags()));
-        Set<String> body = tokens(article.getBody());
+        int score = contains(article.normalizedTitle, normalizedQuery)
+            || contains(normalizedQuery, article.normalizedTitle) ? 20 : 0;
         for (String token : queryTokens) {
-            if (matches(title, token)) score += 9;
-            if (matches(aliases, token)) score += 7;
-            if (matches(tags, token)) score += 5;
-            if (matches(body, token)) score += 1;
+            if (matches(article.titleTokens, token)) score += 9;
+            if (matches(article.aliasTokens, token)) score += 7;
+            if (matches(article.tagTokens, token)) score += 5;
         }
         return score;
     }
@@ -243,7 +252,10 @@ final class KnowledgeRepository {
     }
 
     private static String normalize(String value) {
-        return Normalizer.normalize(value.toLowerCase(Locale.ROOT), Normalizer.Form.NFC)
+        return Normalizer.normalize(
+            value.toLowerCase(Locale.ROOT)
+                .replace('ё', 'е'),
+            Normalizer.Form.NFC)
             .trim();
     }
 
@@ -305,7 +317,20 @@ final class KnowledgeRepository {
             .getAsBoolean() : fallback;
     }
 
-    private static String safeUrl(String value) {
-        return value.startsWith("https://") || value.startsWith("http://") ? value : "";
+    private static final class IndexedArticle {
+
+        private final KnowledgeArticle article;
+        private final String normalizedTitle;
+        private final Set<String> titleTokens;
+        private final Set<String> aliasTokens;
+        private final Set<String> tagTokens;
+
+        private IndexedArticle(KnowledgeArticle article) {
+            this.article = article;
+            normalizedTitle = normalize(article.getTitle());
+            titleTokens = tokens(article.getTitle());
+            aliasTokens = tokens(String.join(" ", article.getAliases()));
+            tagTokens = tokens(String.join(" ", article.getTags()));
+        }
     }
 }

@@ -20,6 +20,7 @@ import com.google.gson.JsonParser;
 public final class OllamaClient {
 
     private static final JsonParser JSON = new JsonParser();
+    private static final int MAX_RESPONSE_CHARS = 1024 * 1024;
     private final Deque<JsonObject> history = new ArrayDeque<>();
     private final KnowledgeRepository knowledge;
 
@@ -29,13 +30,6 @@ public final class OllamaClient {
 
     public synchronized String answer(String prompt, JsonObject context, List<String> recentChat) throws Exception {
         return complete("user", prompt, context, recentChat, 320);
-    }
-
-    public synchronized String reactToEvent(String event, JsonObject context, List<String> recentChat)
-        throws Exception {
-        String instruction = "Событие игры: " + event
-            + " Отреагируй сама одной короткой уместной репликой. Не задавай вопрос и не пересказывай технические поля.";
-        return complete("system", instruction, context, recentChat, 80);
     }
 
     private String complete(String role, String prompt, JsonObject context, List<String> recentChat, int maxTokens)
@@ -97,7 +91,7 @@ public final class OllamaClient {
 
             code = connection.getResponseCode();
             InputStream stream = code >= 400 ? connection.getErrorStream() : connection.getInputStream();
-            raw = stream == null ? "" : read(stream);
+            raw = stream == null ? "" : read(stream, MAX_RESPONSE_CHARS);
         } finally {
             connection.disconnect();
         }
@@ -210,11 +204,17 @@ public final class OllamaClient {
                     .getAsString());
     }
 
-    private static String read(InputStream stream) throws Exception {
+    private static String read(InputStream stream, int maximumCharacters) throws Exception {
         StringBuilder result = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) result.append(line);
+            char[] buffer = new char[4096];
+            int count;
+            while ((count = reader.read(buffer)) >= 0) {
+                if (result.length() + count > maximumCharacters) {
+                    throw new IllegalStateException("Ollama response exceeded the safety limit");
+                }
+                result.append(buffer, 0, count);
+            }
         }
         return result.toString();
     }

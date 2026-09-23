@@ -11,9 +11,6 @@ public final class BridgeConfig {
     public static String ollamaModel = "qwen3:8b";
     public static boolean captureIncomingChat = true;
     public static boolean replaceVanillaChat = true;
-    public static boolean proactiveComments = true;
-    public static int proactiveCooldownSeconds = 45;
-    public static double criticalHealth = 6.0D;
 
     private BridgeConfig() {}
 
@@ -36,25 +33,6 @@ public final class BridgeConfig {
             "chat",
             replaceVanillaChat,
             "Open the expanded Aurora Chat instead of Minecraft's vanilla chat screen.");
-        proactiveComments = config.getBoolean(
-            "enabled",
-            "proactive",
-            proactiveComments,
-            "Let Aurora comment on important player events without being asked.");
-        proactiveCooldownSeconds = config.getInt(
-            "cooldownSeconds",
-            "proactive",
-            proactiveCooldownSeconds,
-            10,
-            600,
-            "Minimum delay between proactive AI comments.");
-        criticalHealth = config.getFloat(
-            "criticalHealth",
-            "proactive",
-            (float) criticalHealth,
-            1.0F,
-            20.0F,
-            "Health value that triggers a critical-health observation.");
         if (config.hasChanged()) config.save();
     }
 }

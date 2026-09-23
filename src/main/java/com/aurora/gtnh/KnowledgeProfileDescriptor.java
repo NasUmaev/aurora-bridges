@@ -42,8 +42,7 @@ final class KnowledgeProfileDescriptor {
     private static KnowledgeProfileDescriptor create(String id, String version, String minecraftVersion, String url,
         String sha256) {
         if (!id.matches("[a-z0-9._-]{1,64}")) throw new IllegalArgumentException("Invalid knowledge profile id");
-        if (!version.matches("[0-9]+(?:\\.[0-9]+){0,3}"))
-            throw new IllegalArgumentException("Invalid knowledge profile version");
+        if (!isValidVersion(version)) throw new IllegalArgumentException("Invalid knowledge profile version");
         if (!"1.7.10".equals(minecraftVersion))
             throw new IllegalArgumentException("Incompatible Minecraft knowledge profile");
         if (!url.startsWith(TRUSTED_RELEASE_PREFIX))
@@ -59,6 +58,10 @@ final class KnowledgeProfileDescriptor {
             .isJsonPrimitive()) throw new IllegalArgumentException("Missing catalog field " + name);
         return object.get(name)
             .getAsString();
+    }
+
+    static boolean isValidVersion(String value) {
+        return value != null && value.matches("[0-9]{1,9}(?:\\.[0-9]{1,9}){0,3}");
     }
 
     String getId() {

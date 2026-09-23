@@ -19,8 +19,9 @@ import com.google.gson.JsonParser;
 /** Installs a versioned knowledge profile as data beside the mod, never inside the mod JAR. */
 final class KnowledgeProfileInstaller {
 
-    private static final long MAX_ARCHIVE_BYTES = 16L * 1024L * 1024L;
-    private static final long MAX_EXPANDED_BYTES = 32L * 1024L * 1024L;
+    private static final long MAX_ARCHIVE_BYTES = 64L * 1024L * 1024L;
+    private static final long MAX_EXPANDED_BYTES = 96L * 1024L * 1024L;
+    private static final int MAX_ARCHIVE_ENTRIES = 50000;
     private static final JsonParser JSON = new JsonParser();
     private final KnowledgeProfileDescriptor profile;
 
@@ -36,8 +37,8 @@ final class KnowledgeProfileInstaller {
         File root = AuroraRuntimeManager.auroraDirectory();
         File downloads = new File(root, "downloads");
         File profiles = KnowledgeRepository.profilesDirectory();
-        downloads.mkdirs();
-        profiles.mkdirs();
+        ensureDirectory(downloads);
+        ensureDirectory(profiles);
 
         File archive = new File(downloads, profile.getId() + "-profile-v" + profile.getVersion() + ".zip.part");
         listener.update("Скачиваю профиль " + profile.getId() + "…", 0.92D);
@@ -58,16 +59,26 @@ final class KnowledgeProfileInstaller {
         File destination = new File(profiles, profile.getId());
         File previous = new File(profiles, "." + profile.getId() + ".previous");
         deleteInside(profiles, previous);
-        if (destination.exists() && !destination.renameTo(previous)) {
-            throw new IllegalStateException("Не удалось обновить предыдущий профиль");
-        }
-        if (!extracted.renameTo(destination)) {
-            if (previous.exists()) previous.renameTo(destination);
-            throw new IllegalStateException("Не удалось активировать профиль знаний");
+        if (destination.exists()) SafeFileOps.moveDirectory(destination, previous);
+        try {
+            SafeFileOps.moveDirectory(extracted, destination);
+        } catch (Exception activationFailure) {
+            if (previous.exists() && !destination.exists()) {
+                try {
+                    SafeFileOps.moveDirectory(previous, destination);
+                } catch (Exception rollbackFailure) {
+                    activationFailure.addSuppressed(rollbackFailure);
+                }
+            }
+            throw new IllegalStateException("Не удалось активировать профиль знаний", activationFailure);
         }
         deleteInside(profiles, staging);
-        deleteInside(profiles, previous);
-        archive.delete();
+        try {
+            deleteInside(profiles, previous);
+        } catch (Exception cleanupFailure) {
+            AuroraBridgeMod.LOG.warn("Could not remove previous Aurora knowledge profile", cleanupFailure);
+        }
+        if (!archive.delete()) AuroraBridgeMod.LOG.debug("Could not remove downloaded knowledge archive {}", archive);
         listener.update("Профиль Minecraft 1.7.10 установлен", 0.99D);
     }
 
@@ -143,10 +154,14 @@ final class KnowledgeProfileInstaller {
     private static void extract(File archive, File destination) throws Exception {
         String root = destination.getCanonicalPath() + File.separator;
         long expanded = 0L;
+        int entries = 0;
         byte[] buffer = new byte[32 * 1024];
         try (ZipInputStream zip = new ZipInputStream(new BufferedInputStream(new FileInputStream(archive)))) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
+                if (++entries > MAX_ARCHIVE_ENTRIES) {
+                    throw new IllegalStateException("В профиле знаний слишком много файлов");
+                }
                 File target = new File(destination, entry.getName());
                 String canonical = target.getCanonicalPath();
                 if (!canonical.startsWith(root)) throw new SecurityException("Недопустимый путь внутри профиля");
@@ -184,5 +199,11 @@ final class KnowledgeProfileInstaller {
             for (File child : children) deleteInside(allowedRoot, child);
         }
         if (!target.delete()) throw new IllegalStateException("Не удалось удалить " + target);
+    }
+
+    private static void ensureDirectory(File directory) {
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new IllegalStateException("Не удалось создать папку " + directory);
+        }
     }
 }

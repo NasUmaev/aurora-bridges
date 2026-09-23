@@ -39,18 +39,13 @@ An interrupted runtime download resumes on the next attempt. Model download prog
 - The Aurora tab stays local: its messages are never sent to a multiplayer server.
 - `/aurora <message>`, `/аврора <message>`, and `/av <message>` remain available as shortcuts.
 - `/aurora setup` reopens the installation screen.
-- `/aurora memory` shows the latest semantic events remembered for the current world.
 - `/aurora knowledge` shows the currently loaded external knowledge profiles.
 - `/aurora knowledge reload` reloads profiles after they are installed or edited.
 - `/aurora knowledge update` manually checks the online catalog for profile updates.
 
-Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, an optional short recent-chat window, and recent events from the current world's local memory. It observes compact inventory totals once per second but never moves the player, clicks, breaks blocks, or uses the inventory.
+Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, and an optional short recent-chat window only when the player asks a question. It never moves the player, clicks, breaks blocks, reads recipe registries, or uses the inventory.
 
 Reference questions are resolved only against installed external knowledge profiles. The distributable mod does not inspect recipe registries, NEI handlers, mod internals, or drop tables at runtime. Each Minecraft version or modpack receives its own versioned profile archive; Aurora searches that local archive and passes only the most relevant articles to the model.
-
-Aurora can also notice five important events by herself: death, critical health, catching fire, changing dimension, and breaking an item. These checks compare a few player-state values and do not scan loaded chunks. Proactive replies are rate-limited and briefly appear over the game while Aurora's chat is closed. Events are stored separately for each world in a bounded local journal under `minecraft/aurora/memory`; journal writing runs away from the game thread.
-
-Inventory memory records aggregate gains and losses. Consecutive changes are compacted after one quiet sample, so repeated item use becomes one entry and a quick drop-and-pickup pair cancels out. Moving stacks between inventory slots, equipping armor, or changing a tool's durability does not create an event. At this stage inventory changes are remembered silently; later interpretation can distinguish crafting, placing, consuming, dropping, and container transfers.
 
 ## Runtime lifecycle and privacy
 
@@ -70,9 +65,6 @@ Forge writes `minecraft/config/aurorabridge.cfg`:
 - `ollama.model` — local model name, `qwen3:8b` by default;
 - `privacy.captureIncomingChat` — include recent received chat in local context;
 - `chat.replaceVanillaChat` — replace the vanilla chat screen with Aurora's combined chat.
-- `proactive.enabled` — enable autonomous event comments;
-- `proactive.cooldownSeconds` — minimum delay between ordinary proactive comments;
-- `proactive.criticalHealth` — health threshold for the low-health event.
 
 The internal mod id remains `aurorabridge` for compatibility with existing installations and configuration files.
 
@@ -88,6 +80,9 @@ docs/                            design and development notes
 ```
 
 `build/`, `run/`, and `.gradle/` are generated locally and are not part of the distributable mod. The old standalone Python bridge is intentionally not part of the current architecture.
+
+The current system boundary is documented in `docs/architecture.md`. The latest foundation review and known risks are
+recorded in `docs/code-audit-2026-09-23.md`.
 
 ## Building and verification
 
@@ -109,7 +104,7 @@ The exporter is a catalog-building tool, not part of Aurora's runtime. It lives 
 
 ## Current scope
 
-This is a macOS client-side MVP with a dedicated two-tab chat, persistent per-world event memory, and an independently updatable vanilla 1.7.10 knowledge profile. The profile currently covers the real crafting and furnace registries plus a small curated starter layer. Mechanics, mobs, biomes, structures, enchantments, progression guides, GTNH knowledge, inventory-difference understanding, places, and long-term summaries remain later stages.
+This is a macOS client-side MVP with a dedicated two-tab chat and an independently updatable vanilla 1.7.10 knowledge profile. The profile currently covers crafting and furnace recipes plus a small curated starter layer. Mechanics, mobs, biomes, structures, enchantments, progression guides, and GTNH knowledge remain later catalog stages.
 
 ## Primary references
 

@@ -21,7 +21,6 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 
 import org.lwjgl.input.Keyboard;
 
@@ -36,22 +35,23 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 public final class AuroraClient {
 
     private static final AuroraClient INSTANCE = new AuroraClient();
-    private static final ExecutorService IO = Executors.newSingleThreadExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "Aurora-Companion-IO");
+    private static final ExecutorService AI_IO = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "Aurora-AI");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private static final ExecutorService MAINTENANCE_IO = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "Aurora-Maintenance");
         thread.setDaemon(true);
         return thread;
     });
 
     private final Queue<String> replies = new ConcurrentLinkedQueue<>();
-    private final Queue<String> pendingObservations = new ConcurrentLinkedQueue<>();
     private final Deque<String> recentChat = new ArrayDeque<>();
     private final AuroraRuntimeManager runtime = new AuroraRuntimeManager();
     private final KnowledgeRepository knowledge = new KnowledgeRepository();
     private final KnowledgeCatalogUpdater knowledgeUpdater = new KnowledgeCatalogUpdater();
     private final OllamaClient ollama = new OllamaClient(knowledge);
-    private final AuroraEventObserver observer = new AuroraEventObserver();
-    private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
-    private final AuroraMemoryStore memory = new AuroraMemoryStore();
     private final AuroraHudOverlay overlay = new AuroraHudOverlay();
     private final KeyBinding auroraChatKey = new KeyBinding("Открыть чат Авроры", Keyboard.KEY_V, "Аврора");
     private final AtomicBoolean requestInFlight = new AtomicBoolean();
@@ -74,10 +74,10 @@ public final class AuroraClient {
             .register(INSTANCE);
         ClientCommandHandler.instance.registerCommand(new AuroraCommand());
         ClientRegistry.registerKeyBinding(INSTANCE.auroraChatKey);
-        IO.execute(() -> {
+        MAINTENANCE_IO.execute(() -> {
             INSTANCE.knowledge.reload();
             INSTANCE.runtime.ensureRunning();
-            INSTANCE.updateKnowledgeFromCatalog(false);
+            if (!INSTANCE.knowledge.needsProfileInstall()) INSTANCE.updateKnowledgeFromCatalog(false);
         });
         AuroraBridgeMod.LOG.info("Aurora initialized for direct Ollama access at {}", BridgeConfig.ollamaUrl);
     }
@@ -106,13 +106,9 @@ public final class AuroraClient {
         if (minecraft.thePlayer == null || minecraft.theWorld == null) {
             if (inWorld) {
                 worldSession++;
-                pendingObservations.clear();
                 replies.clear();
                 overlay.clear();
-                observer.reset();
-                inventoryObserver.reset();
-                memory.leaveWorld();
-                IO.execute(ollama::clearHistory);
+                AI_IO.execute(ollama::clearHistory);
             }
             inWorld = false;
             readyNoticeShown = false;
@@ -120,11 +116,7 @@ public final class AuroraClient {
             return;
         }
 
-        memory.enterWorld(minecraft);
         inWorld = true;
-        handleEvent(observer.observe(minecraft), minecraft);
-        handleEvent(inventoryObserver.observe(minecraft), minecraft);
-        startNextObservation();
 
         if (!readyNoticeShown && runtime.getStatus() == AuroraRuntimeManager.Status.READY) {
             readyNoticeShown = true;
@@ -142,12 +134,6 @@ public final class AuroraClient {
             AuroraConversation.addAurora(cleaned);
             overlay.add(cleaned);
         }
-    }
-
-    @SubscribeEvent
-    public void onItemDestroyed(PlayerDestroyItemEvent event) {
-        if (event.entityPlayer != Minecraft.getMinecraft().thePlayer) return;
-        handleEvent(observer.itemDestroyed(event.original), Minecraft.getMinecraft());
     }
 
     @SubscribeEvent
@@ -197,7 +183,6 @@ public final class AuroraClient {
         List<String> chat;
         try {
             context = ContextSnapshot.capture();
-            INSTANCE.memory.enrich(context);
             synchronized (INSTANCE.recentChat) {
                 chat = new ArrayList<>(INSTANCE.recentChat);
             }
@@ -209,7 +194,7 @@ public final class AuroraClient {
         }
         AuroraConversation.addPlayer(prompt);
         long session = INSTANCE.worldSession;
-        IO.execute(() -> {
+        AI_IO.execute(() -> {
             try {
                 if (!INSTANCE.runtime.ensureRunning()) {
                     if (INSTANCE.worldSession == session) {
@@ -234,57 +219,13 @@ public final class AuroraClient {
         return INSTANCE.requestInFlight.get();
     }
 
-    private static void queueObservation(String observation) {
-        if (INSTANCE.pendingObservations.size() < 2) INSTANCE.pendingObservations.add(observation);
-        startNextObservation();
-    }
-
-    private static void startNextObservation() {
-        if (INSTANCE.pendingObservations.isEmpty() || !INSTANCE.requestInFlight.compareAndSet(false, true)) return;
-        String observation = INSTANCE.pendingObservations.poll();
-        if (observation == null) {
-            INSTANCE.requestInFlight.set(false);
-            return;
-        }
-        JsonObject context;
-        List<String> chat;
-        try {
-            context = ContextSnapshot.capture();
-            INSTANCE.memory.enrich(context);
-            synchronized (INSTANCE.recentChat) {
-                chat = new ArrayList<>(INSTANCE.recentChat);
-            }
-        } catch (RuntimeException exception) {
-            INSTANCE.requestInFlight.set(false);
-            AuroraBridgeMod.LOG.debug("Could not capture proactive Aurora context", exception);
-            return;
-        }
-        long session = INSTANCE.worldSession;
-        IO.execute(() -> {
-            try {
-                if (INSTANCE.runtime.ensureRunning()) {
-                    String answer = INSTANCE.ollama.reactToEvent(observation, context, chat);
-                    if (INSTANCE.worldSession == session) INSTANCE.replies.add(answer);
-                }
-            } catch (Exception exception) {
-                AuroraBridgeMod.LOG.warn("Aurora could not react to event: {}", observation, exception);
-            } finally {
-                INSTANCE.requestInFlight.set(false);
-            }
-        });
-    }
-
     static void openSetup() {
         Minecraft minecraft = Minecraft.getMinecraft();
         minecraft.displayGuiScreen(new GuiAuroraSetup(minecraft.currentScreen, INSTANCE.runtime, INSTANCE.knowledge));
     }
 
-    static List<String> recentMemories() {
-        return INSTANCE.memory.recent(8);
-    }
-
     static void reloadKnowledge() {
-        IO.execute(() -> {
+        MAINTENANCE_IO.execute(() -> {
             INSTANCE.knowledge.reload();
             List<String> profiles = INSTANCE.knowledge.getActiveProfiles();
             INSTANCE.replies
@@ -293,7 +234,7 @@ public final class AuroraClient {
     }
 
     static void updateKnowledge() {
-        IO.execute(() -> INSTANCE.updateKnowledgeFromCatalog(true));
+        MAINTENANCE_IO.execute(() -> INSTANCE.updateKnowledgeFromCatalog(true));
     }
 
     static List<String> knowledgeProfiles() {
@@ -313,12 +254,6 @@ public final class AuroraClient {
             AuroraBridgeMod.LOG.warn("Could not update Aurora knowledge catalog; using local profiles", exception);
             if (reportNoChange) replies.add("Не удалось проверить обновления. Продолжаю работать с локальной базой.");
         }
-    }
-
-    private static void handleEvent(AuroraEvent event, Minecraft minecraft) {
-        if (event == null) return;
-        INSTANCE.memory.record(event, minecraft);
-        if (event.isReactionRecommended()) queueObservation(event.getSummary());
     }
 
     private static String sanitizeForChat(String text) {

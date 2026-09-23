@@ -65,7 +65,7 @@ final class KnowledgeCatalogUpdater {
     }
 
     private static int[] versionParts(String version) {
-        if (version == null || !version.matches("[0-9]+(?:\\.[0-9]+){0,3}")) return new int[] { 0 };
+        if (!KnowledgeProfileDescriptor.isValidVersion(version)) return new int[] { 0 };
         String[] parts = version.split("\\.");
         int[] result = new int[parts.length];
         for (int index = 0; index < parts.length; index++) result[index] = Integer.parseInt(parts[index]);
@@ -111,9 +111,6 @@ final class KnowledgeCatalogUpdater {
             new OutputStreamWriter(new FileOutputStream(pending), StandardCharsets.UTF_8))) {
             writer.write(content);
         }
-        if (destination.exists() && !destination.delete())
-            throw new IllegalStateException("Could not replace cached knowledge catalog");
-        if (!pending.renameTo(destination))
-            throw new IllegalStateException("Could not activate knowledge catalog cache");
+        SafeFileOps.replaceFile(pending, destination);
     }
 }

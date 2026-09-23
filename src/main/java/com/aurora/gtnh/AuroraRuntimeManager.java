@@ -33,7 +33,7 @@ public final class AuroraRuntimeManager {
             detail = "";
             return true;
         }
-        if (ownedProcess != null && ownedProcess.isAlive()) return waitUntilReady();
+        if (ownedProcess != null && ownedProcess.isAlive() && waitUntilReady()) return true;
 
         File executable = portableExecutable();
         boolean portable = executable.isFile() && executable.canExecute();
@@ -79,10 +79,7 @@ public final class AuroraRuntimeManager {
     }
 
     public synchronized void stop() {
-        if (ownedProcess != null) {
-            ownedProcess.destroy();
-            ownedProcess = null;
-        }
+        discardOwnedProcess();
     }
 
     public static File auroraDirectory() {
@@ -107,7 +104,14 @@ public final class AuroraRuntimeManager {
         }
         status = Status.FAILED;
         detail = "Ollama did not become ready";
+        discardOwnedProcess();
         return false;
+    }
+
+    private void discardOwnedProcess() {
+        Process process = ownedProcess;
+        ownedProcess = null;
+        if (process != null && process.isAlive()) process.destroy();
     }
 
     private static boolean isApiReady() {

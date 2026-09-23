@@ -20,7 +20,7 @@ public final class AuroraCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/aurora <сообщение> | /aurora setup | /aurora memory | /aurora knowledge [reload|update]";
+        return "/aurora <сообщение> | /aurora setup | /aurora knowledge [reload|update]";
     }
 
     @Override
@@ -35,18 +35,6 @@ public final class AuroraCommand extends CommandBase {
         }
         if (args.length == 1 && "setup".equalsIgnoreCase(args[0])) {
             AuroraClient.openSetup();
-            return;
-        }
-        if (args.length == 1 && "memory".equalsIgnoreCase(args[0])) {
-            List<String> memories = AuroraClient.recentMemories();
-            if (memories.isEmpty()) {
-                sender.addChatMessage(new net.minecraft.util.ChatComponentText("§d[Аврора] §7Память пока пуста."));
-            } else {
-                sender.addChatMessage(new net.minecraft.util.ChatComponentText("§d[Аврора] §7Последние события:"));
-                for (String memory : memories) {
-                    sender.addChatMessage(new net.minecraft.util.ChatComponentText("§8• §7" + memory));
-                }
-            }
             return;
         }
         if (args.length == 1 && "knowledge".equalsIgnoreCase(args[0])) {
