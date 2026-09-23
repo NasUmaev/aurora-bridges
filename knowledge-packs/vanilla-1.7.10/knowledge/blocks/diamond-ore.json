@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 2,
+  "id": "block.minecraft.diamond_ore",
+  "kind": "block",
+  "gameVersion": "1.7.10",
+  "title": "Алмазная руда",
+  "aliases": ["diamond ore", "алмазная руда", "minecraft:diamond_ore"],
+  "tags": ["блок", "руда", "алмаз", "добыча", "железная кирка", "удача", "шёлковое касание", "опыт"],
+  "subject": {
+    "id": "block.minecraft.diamond_ore",
+    "registryName": "minecraft:diamond_ore",
+    "numericId": 56,
+    "metadata": 0
+  },
+  "summary": "Алмазная руда — редкая руда Верхнего мира, из которой получают алмазы.",
+  "facts": [
+    {
+      "key": "generation.height",
+      "text": "В Minecraft 1.7.10 алмазная руда генерируется ниже высоты Y=16, то есть на уровнях Y=0–15.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "harvest.tool",
+      "text": "Для получения алмаза нужна железная или алмазная кирка. Деревянная, золотая и каменная кирки не дают алмаз.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.normal",
+      "text": "При добыче подходящей киркой без специальных зачарований выпадает один алмаз.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.fortune",
+      "text": "Зачарование «Удача» может увеличить количество выпадающих алмазов.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.silk-touch",
+      "text": "С «Шёлковым касанием» выпадает сам блок алмазной руды вместо алмаза.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.experience",
+      "text": "Если руда отдаёт алмаз напрямую, она также даёт от 3 до 7 единиц опыта.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    }
+  ],
+  "relations": [
+    { "type": "drops", "target": "item.minecraft.diamond" },
+    { "type": "affected-by", "target": "enchantment.minecraft.fortune" },
+    { "type": "affected-by", "target": "enchantment.minecraft.silk_touch" }
+  ],
+  "sources": [
+    {
+      "id": "minecraft-1.7.10-game-data",
+      "label": "Minecraft Java Edition 1.7.10 — игровые данные",
+      "type": "game-data"
+    }
+  ]
+}

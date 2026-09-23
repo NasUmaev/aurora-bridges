@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "id": "block.minecraft.stone",
+  "kind": "block",
+  "gameVersion": "1.7.10",
+  "title": "Камень",
+  "aliases": ["stone", "обычный камень", "minecraft:stone"],
+  "tags": ["блок", "добыча", "кирка", "шёлковое касание", "булыжник"],
+  "subject": {
+    "id": "block.minecraft.stone",
+    "registryName": "minecraft:stone",
+    "numericId": 1,
+    "metadata": 0
+  },
+  "summary": "Камень — твёрдый природный блок Верхнего мира и основной источник булыжника.",
+  "facts": [
+    {
+      "key": "harvest.tool",
+      "text": "Для получения дропа камень нужно разрушать киркой. Без подходящей кирки полезный дроп не выпадает.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.normal",
+      "text": "При обычной добыче подходящей киркой из камня выпадает один блок булыжника.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "drop.silk-touch",
+      "text": "Кирка с зачарованием «Шёлковое касание» позволяет получить сам блок камня вместо булыжника.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    },
+    {
+      "key": "processing.smelting",
+      "text": "Булыжник можно переплавить в печи обратно в камень.",
+      "sourceIds": ["minecraft-1.7.10-game-data"]
+    }
+  ],
+  "relations": [
+    { "type": "drops", "target": "block.minecraft.cobblestone" },
+    { "type": "smelted-from", "target": "block.minecraft.cobblestone" }
+  ],
+  "sources": [
+    {
+      "id": "minecraft-1.7.10-game-data",
+      "label": "Minecraft Java Edition 1.7.10 — игровые данные",
+      "type": "game-data"
+    }
+  ]
+}

@@ -63,6 +63,19 @@ final class KnowledgeRepository {
             "это",
             "этот",
             "я"));
+    private static final Set<String> ARTICLE_KINDS = new HashSet<>(
+        Arrays.asList(
+            "block",
+            "item",
+            "mob",
+            "recipe",
+            "drop",
+            "enchantment",
+            "effect",
+            "biome",
+            "structure",
+            "mechanic",
+            "guide"));
 
     private volatile List<IndexedArticle> articles = Collections.emptyList();
     private volatile List<String> activeProfiles = Collections.emptyList();
@@ -208,6 +221,13 @@ final class KnowledgeRepository {
 
     private static KnowledgeArticle readArticle(String profile, File file) throws Exception {
         JsonObject json = readJson(file);
+        int schemaVersion = integer(json, "schemaVersion", 1);
+        if (schemaVersion == 2) return readStructuredArticle(profile, json);
+        if (schemaVersion != 1) return null;
+        return readLegacyArticle(profile, json);
+    }
+
+    private static KnowledgeArticle readLegacyArticle(String profile, JsonObject json) {
         String id = string(json, "id", "");
         String title = string(json, "title", "");
         String body = string(json, "body", "");
@@ -219,6 +239,71 @@ final class KnowledgeRepository {
             strings(json.getAsJsonArray("tags")),
             body,
             string(json, "sourceLabel", profile));
+    }
+
+    private static KnowledgeArticle readStructuredArticle(String profile, JsonObject json) {
+        String id = string(json, "id", "");
+        String kind = string(json, "kind", "");
+        String title = string(json, "title", "");
+        String summary = string(json, "summary", "");
+        if (!id.matches("[a-z0-9._@-]{1,128}") || !ARTICLE_KINDS.contains(kind)
+            || title.isEmpty()
+            || summary.isEmpty()
+            || !"1.7.10".equals(string(json, "gameVersion", ""))) return null;
+
+        JsonObject subject = json.has("subject") && json.get("subject")
+            .isJsonObject() ? json.getAsJsonObject("subject") : null;
+        if (subject == null || string(subject, "id", "").isEmpty()) return null;
+
+        List<String> aliases = strings(json.getAsJsonArray("aliases"));
+        addSearchAlias(aliases, subject, "id");
+        addSearchAlias(aliases, subject, "registryName");
+        List<String> tags = strings(json.getAsJsonArray("tags"));
+        tags.add(kind);
+
+        JsonArray sources = json.getAsJsonArray("sources");
+        if (sources == null || sources.size() == 0) return null;
+        Set<String> sourceIds = new HashSet<>();
+        String sourceLabel = profile;
+        for (JsonElement element : sources) {
+            if (!element.isJsonObject()) return null;
+            JsonObject source = element.getAsJsonObject();
+            String sourceId = string(source, "id", "");
+            String label = string(source, "label", "");
+            if (sourceId.isEmpty() || label.isEmpty() || !sourceIds.add(sourceId)) return null;
+            if (sourceLabel.equals(profile)) sourceLabel = label;
+        }
+
+        JsonArray facts = json.getAsJsonArray("facts");
+        if (facts == null || facts.size() == 0) return null;
+        StringBuilder body = new StringBuilder(summary);
+        Set<String> factKeys = new HashSet<>();
+        for (JsonElement element : facts) {
+            if (!element.isJsonObject()) return null;
+            JsonObject fact = element.getAsJsonObject();
+            String key = string(fact, "key", "");
+            String text = string(fact, "text", "");
+            List<String> references = strings(fact.getAsJsonArray("sourceIds"));
+            if (key.isEmpty() || text.isEmpty()
+                || !factKeys.add(key)
+                || references.isEmpty()
+                || !sourceIds.containsAll(references)) return null;
+            body.append("\n- ")
+                .append(text);
+            List<String> conditions = strings(fact.getAsJsonArray("conditions"));
+            if (!conditions.isEmpty()) body.append(" Условия: ")
+                .append(String.join("; ", conditions))
+                .append('.');
+        }
+        return new KnowledgeArticle(id, title, aliases, tags, body.toString(), sourceLabel);
+    }
+
+    private static void addSearchAlias(List<String> aliases, JsonObject subject, String name) {
+        if (!subject.has(name) || !subject.get(name)
+            .isJsonPrimitive()) return;
+        String value = subject.get(name)
+            .getAsString();
+        if (!value.isEmpty() && !aliases.contains(value)) aliases.add(value);
     }
 
     private static int score(IndexedArticle article, Set<String> queryTokens, String rawQuery) {

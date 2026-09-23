@@ -75,6 +75,7 @@ src/main/java/com/aurora/gtnh/   Forge client, UI, context, Ollama and installer
 src/main/resources/              mod metadata and packaged resources
 knowledge-packs/                 external knowledge profiles; never packaged into the mod JAR
 knowledge-catalog/               online profile catalog published with the repository
+knowledge-schema/                formal schemas for curated knowledge articles
 gradle/                          Gradle wrapper support
 docs/                            design and development notes
 ```
@@ -92,7 +93,9 @@ Use a full JDK supported by the current GTNH development toolchain:
 ./gradlew --no-daemon spotlessApply build
 ```
 
-The installable artifact is `build/libs/aurorabridge-0.1.0.jar`. The build performs formatting, Checkstyle, compilation, Java 8-compatible reobfuscation, and packaging. Minecraft itself can continue to use the Java version required by the target GTNH package.
+The installable artifact is `build/libs/aurorabridge-0.1.0.jar`. The build performs formatting, Checkstyle, compilation, Java 8-compatible reobfuscation, knowledge-profile validation, and packaging. Minecraft itself can continue to use the Java version required by the target GTNH package.
+
+Curated articles use the structured v2 format documented in `docs/knowledge-schema-v2.md`. Legacy v1 articles remain readable while the profile is migrated in small, reviewable groups. The validator checks both formats and stops the build on malformed data, duplicate identifiers, broken source references, or a stale article count.
 
 The vanilla profile's generated recipe layer can be rebuilt by a development-only catalog generator, including Ore Dictionary alternatives and the official Russian and English language assets:
 
@@ -104,7 +107,7 @@ The exporter is a catalog-building tool, not part of Aurora's runtime. It lives 
 
 ## Current scope
 
-This is a macOS client-side MVP with a dedicated two-tab chat and an independently updatable vanilla 1.7.10 knowledge profile. The profile currently covers crafting and furnace recipes plus a small curated starter layer. Mechanics, mobs, biomes, structures, enchantments, progression guides, and GTNH knowledge remain later catalog stages.
+This is a macOS client-side MVP with a dedicated two-tab chat and an independently updatable vanilla 1.7.10 knowledge profile. The profile currently covers crafting and furnace recipes plus a small curated starter layer. Structured coverage of every vanilla 1.7.10 block, item, mob, and mechanic is the current catalog stage; GTNH knowledge remains a later, separate profile.
 
 ## Primary references
 
