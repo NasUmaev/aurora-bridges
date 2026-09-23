@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "profileVersion": "0.2.0",
+  "profileVersion": "0.2.1",
   "id": "vanilla-1.7.10",
   "displayName": "Minecraft 1.7.10 — базовые знания",
   "minecraftVersion": "1.7.10",
   "enabled": true,
   "requiredMods": [],
   "vanillaOnly": true,
-  "articleCount": 319,
-  "categories": ["guides", "crafting", "smelting"],
+  "articleCount": 322,
+  "categories": ["guides", "crafting", "smelting", "drops"],
   "allowedMods": ["aurorabridge", "openalfix"]
 }

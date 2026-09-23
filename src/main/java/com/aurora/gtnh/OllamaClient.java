@@ -29,7 +29,7 @@ public final class OllamaClient {
 
     public synchronized String answer(String prompt, JsonObject context, List<String> recentChat, String activeRecipes)
         throws Exception {
-        return complete("user", prompt, context, recentChat, activeRecipes, 180);
+        return complete("user", prompt, context, recentChat, activeRecipes, 320);
     }
 
     public synchronized String reactToEvent(String event, JsonObject context, List<String> recentChat)
@@ -56,6 +56,25 @@ public final class OllamaClient {
         for (JsonObject previous : history) messages.add(previous);
         messages.add(message(role, prompt));
 
+        Completion completion = request(messages, maxTokens);
+        String answer = cleanAnswer(completion.text);
+        if ("user".equals(role) && completion.truncated) {
+            messages.add(message("assistant", completion.text));
+            messages.add(
+                message(
+                    "user",
+                    "Продолжи строго с места обрыва и закончи ответ. Не повторяй уже "
+                        + "сказанное и не добавляй новую тему."));
+            String continuation = cleanAnswer(request(messages, 180).text);
+            if (!continuation.isEmpty()) answer = joinContinuation(answer, continuation);
+        }
+        String citation = citation(sources, activeRecipes);
+        if (!citation.isEmpty()) answer = answer + "\nИсточник: " + citation;
+        remember(role, prompt, answer);
+        return answer;
+    }
+
+    private static Completion request(JsonArray messages, int maxTokens) throws Exception {
         JsonObject options = new JsonObject();
         options.addProperty("temperature", 0.55D);
         options.addProperty("num_predict", maxTokens);
@@ -90,16 +109,20 @@ public final class OllamaClient {
             throw new IllegalStateException("Ollama HTTP " + code + ": " + detail);
         }
 
-        String answer = JSON.parse(raw)
-            .getAsJsonObject()
-            .getAsJsonObject("message")
+        JsonObject response = JSON.parse(raw)
+            .getAsJsonObject();
+        String text = response.getAsJsonObject("message")
             .get("content")
             .getAsString();
-        answer = cleanAnswer(answer);
-        String citation = citation(sources, activeRecipes);
-        if (!citation.isEmpty()) answer = answer + "\nИсточник: " + citation;
-        remember(role, prompt, answer);
-        return answer;
+        String reason = response.has("done_reason") ? response.get("done_reason")
+            .getAsString() : "";
+        return new Completion(text, "length".equals(reason) || "max_tokens".equals(reason));
+    }
+
+    private static String joinContinuation(String first, String second) {
+        if (first.isEmpty()) return second;
+        if (first.endsWith("\n") || Character.isWhitespace(second.charAt(0))) return first + second;
+        return first + " " + second;
     }
 
     private static String cleanAnswer(String answer) {
@@ -198,5 +221,16 @@ public final class OllamaClient {
             while ((line = reader.readLine()) != null) result.append(line);
         }
         return result.toString();
+    }
+
+    private static final class Completion {
+
+        private final String text;
+        private final boolean truncated;
+
+        private Completion(String text, boolean truncated) {
+            this.text = text;
+            this.truncated = truncated;
+        }
     }
 }

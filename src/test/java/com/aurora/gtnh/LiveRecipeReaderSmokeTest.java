@@ -12,6 +12,7 @@ public final class LiveRecipeReaderSmokeTest {
         assertRecipe(reader, "how to make a wooden pickaxe?", "Wooden Pickaxe", "Stick");
         assertRecipe(reader, "torch recipe", "Torch", "Coal");
         assertRecipe(reader, "how to make an iron ingot?", "Iron Ingot", "Iron Ore");
+        assertNoRecipe(reader, "как получить алмазы?");
         System.out.println("Aurora LiveRecipeReader smoke test passed");
     }
 
@@ -22,5 +23,10 @@ public final class LiveRecipeReaderSmokeTest {
                 throw new AssertionError("Query '" + query + "' did not contain '" + value + "': " + result);
             }
         }
+    }
+
+    private static void assertNoRecipe(LiveRecipeReader reader, String query) {
+        String result = reader.find(query, new JsonObject());
+        if (!result.isEmpty()) throw new AssertionError("Expected no recipe for '" + query + "', got: " + result);
     }
 }

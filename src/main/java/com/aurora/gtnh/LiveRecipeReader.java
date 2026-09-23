@@ -424,7 +424,6 @@ final class LiveRecipeReader {
             || value.contains("скрафт")
             || value.contains("как сделать")
             || value.contains("как создать")
-            || value.contains("как получить")
             || value.contains("переплав")
             || value.contains("recipe")
             || value.contains("how to craft")
