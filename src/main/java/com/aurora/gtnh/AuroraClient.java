@@ -48,7 +48,6 @@ public final class AuroraClient {
     private final AuroraRuntimeManager runtime = new AuroraRuntimeManager();
     private final KnowledgeRepository knowledge = new KnowledgeRepository();
     private final KnowledgeCatalogUpdater knowledgeUpdater = new KnowledgeCatalogUpdater();
-    private final LiveRecipeReader recipes = new LiveRecipeReader();
     private final OllamaClient ollama = new OllamaClient(knowledge);
     private final AuroraEventObserver observer = new AuroraEventObserver();
     private final AuroraInventoryObserver inventoryObserver = new AuroraInventoryObserver();
@@ -196,11 +195,9 @@ public final class AuroraClient {
         }
         JsonObject context;
         List<String> chat;
-        String activeRecipes;
         try {
             context = ContextSnapshot.capture();
             INSTANCE.memory.enrich(context);
-            activeRecipes = INSTANCE.recipes.find(prompt, context);
             synchronized (INSTANCE.recentChat) {
                 chat = new ArrayList<>(INSTANCE.recentChat);
             }
@@ -220,7 +217,7 @@ public final class AuroraClient {
                     }
                     return;
                 }
-                String answer = INSTANCE.ollama.answer(prompt, context, chat, activeRecipes);
+                String answer = INSTANCE.ollama.answer(prompt, context, chat);
                 if (INSTANCE.worldSession == session) INSTANCE.replies.add(answer);
             } catch (Exception exception) {
                 AuroraBridgeMod.LOG.error("Aurora could not answer", exception);

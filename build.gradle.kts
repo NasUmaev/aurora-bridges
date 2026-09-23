@@ -8,7 +8,7 @@ tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
 }
 
 tasks.named<JavaExec>("runClient") {
-    if (project.hasProperty("auroraGenerateKnowledge") || project.hasProperty("auroraTestRecipeReader")) {
+    if (project.hasProperty("auroraGenerateKnowledge")) {
         dependsOn("testClasses")
         classpath += sourceSets["test"].output
     }
@@ -22,8 +22,5 @@ tasks.named<JavaExec>("runClient") {
             "aurora.assets.dir",
             gradle.gradleUserHomeDir.resolve("caches/retro_futura_gradle/assets").absolutePath,
         )
-    }
-    if (project.hasProperty("auroraTestRecipeReader")) {
-        systemProperty("aurora.testRecipeReader", "true")
     }
 }

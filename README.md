@@ -46,7 +46,7 @@ An interrupted runtime download resumes on the next attempt. Model download prog
 
 Aurora receives the player's coordinates, health, dimension, held item, block under the crosshair, an optional short recent-chat window, and recent events from the current world's local memory. It observes compact inventory totals once per second but never moves the player, clicks, breaks blocks, or uses the inventory.
 
-Recipe questions are resolved against the registries of the running game before they reach Ollama. Crafting-table and furnace recipes work directly through Minecraft and Forge without NEI. When NEI is installed, Aurora discovers it at runtime and also reads the crafting handlers registered by NEI and its add-ons; NEI remains an optional integration and is not a required dependency. Only a small number of recipes relevant to the question are passed to the model.
+Reference questions are resolved only against installed external knowledge profiles. The distributable mod does not inspect recipe registries, NEI handlers, mod internals, or drop tables at runtime. Each Minecraft version or modpack receives its own versioned profile archive; Aurora searches that local archive and passes only the most relevant articles to the model.
 
 Aurora can also notice five important events by herself: death, critical health, catching fire, changing dimension, and breaking an item. These checks compare a few player-state values and do not scan loaded chunks. Proactive replies are rate-limited and briefly appear over the game while Aurora's chat is closed. Events are stored separately for each world in a bounded local journal under `minecraft/aurora/memory`; journal writing runs away from the game thread.
 
@@ -99,15 +99,13 @@ Use a full JDK supported by the current GTNH development toolchain:
 
 The installable artifact is `build/libs/aurorabridge-0.1.0.jar`. The build performs formatting, Checkstyle, compilation, Java 8-compatible reobfuscation, and packaging. Minecraft itself can continue to use the Java version required by the target GTNH package.
 
-The vanilla profile's generated recipe layer is rebuilt from Minecraft and Forge's real runtime registries, including Ore Dictionary alternatives and the official Russian and English language assets:
+The vanilla profile's generated recipe layer can be rebuilt by a development-only catalog generator, including Ore Dictionary alternatives and the official Russian and English language assets:
 
 ```sh
 ./gradlew --no-daemon spotlessApply runClient -PauroraGenerateKnowledge
 ```
 
-The development-only exporter lives in the test source set and is never included in the distributable mod. It writes thematic `crafting/` and `smelting/` packages below `knowledge-packs/vanilla-1.7.10/knowledge`; curated guides remain alongside them.
-
-The live reader has a development smoke test that starts Forge and verifies active crafting and furnace recipes with `./gradlew --no-daemon spotlessApply runClient -PauroraTestRecipeReader`.
+The exporter is a catalog-building tool, not part of Aurora's runtime. It lives in the test source set and is never included in the distributable mod. It writes thematic `crafting/` and `smelting/` packages below `knowledge-packs/vanilla-1.7.10/knowledge`; curated guides remain alongside them.
 
 ## Current scope
 

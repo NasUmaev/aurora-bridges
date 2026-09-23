@@ -27,22 +27,21 @@ public final class OllamaClient {
         this.knowledge = knowledge;
     }
 
-    public synchronized String answer(String prompt, JsonObject context, List<String> recentChat, String activeRecipes)
-        throws Exception {
-        return complete("user", prompt, context, recentChat, activeRecipes, 320);
+    public synchronized String answer(String prompt, JsonObject context, List<String> recentChat) throws Exception {
+        return complete("user", prompt, context, recentChat, 320);
     }
 
     public synchronized String reactToEvent(String event, JsonObject context, List<String> recentChat)
         throws Exception {
         String instruction = "Событие игры: " + event
             + " Отреагируй сама одной короткой уместной репликой. Не задавай вопрос и не пересказывай технические поля.";
-        return complete("system", instruction, context, recentChat, "", 80);
+        return complete("system", instruction, context, recentChat, 80);
     }
 
-    private String complete(String role, String prompt, JsonObject context, List<String> recentChat,
-        String activeRecipes, int maxTokens) throws Exception {
+    private String complete(String role, String prompt, JsonObject context, List<String> recentChat, int maxTokens)
+        throws Exception {
         List<KnowledgeSearchResult> sources = knowledge.search(knowledgeQuery(prompt, context));
-        if ("user".equals(role) && sources.isEmpty() && activeRecipes.isEmpty() && looksLikeKnowledgeQuestion(prompt)) {
+        if ("user".equals(role) && sources.isEmpty() && looksLikeKnowledgeQuestion(prompt)) {
             String answer = "Я пока не знаю это наверняка: в подключённой базе нет подходящей статьи. "
                 + "Не хочу придумывать и вводить тебя в заблуждение 😅";
             remember(role, prompt, answer);
@@ -50,9 +49,7 @@ public final class OllamaClient {
         }
         JsonArray messages = new JsonArray();
         messages.add(
-            message(
-                "system",
-                PromptComposer.compose(context, recentChat, knowledge.getActiveProfiles(), sources, activeRecipes)));
+            message("system", PromptComposer.compose(context, recentChat, knowledge.getActiveProfiles(), sources)));
         for (JsonObject previous : history) messages.add(previous);
         messages.add(message(role, prompt));
 
@@ -68,7 +65,7 @@ public final class OllamaClient {
             String continuation = cleanAnswer(request(messages, 180).text);
             if (!continuation.isEmpty()) answer = joinContinuation(answer, continuation);
         }
-        String citation = citation(sources, activeRecipes);
+        String citation = citation(sources);
         if (!citation.isEmpty()) answer = answer + "\nИсточник: " + citation;
         remember(role, prompt, answer);
         return answer;
@@ -162,9 +159,8 @@ public final class OllamaClient {
             || value.contains("продолжи");
     }
 
-    private static String citation(List<KnowledgeSearchResult> sources, String activeRecipes) {
+    private static String citation(List<KnowledgeSearchResult> sources) {
         Set<String> labels = new LinkedHashSet<>();
-        if (!activeRecipes.isEmpty()) labels.add("активные рецепты игры");
         for (KnowledgeSearchResult result : sources) {
             String label = result.getArticle()
                 .getSourceLabel();
