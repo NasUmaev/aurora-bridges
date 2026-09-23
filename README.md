@@ -85,7 +85,8 @@ docs/                            design and development notes
 
 The current system boundary is documented in `docs/architecture.md`. The latest foundation review and known risks are
 recorded in `docs/code-audit-2026-09-23.md`. The evidence hierarchy used while authoring the vanilla profile is
-documented in `docs/knowledge-sources.md`.
+documented in `docs/knowledge-sources.md`. Completed milestones, rejected experiments, and the current parallel work
+split are recorded in `docs/development-history.md`.
 
 ## Building and verification
 
