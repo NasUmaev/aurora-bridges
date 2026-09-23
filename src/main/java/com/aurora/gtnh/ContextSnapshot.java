@@ -2,6 +2,8 @@ package com.aurora.gtnh;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
@@ -55,6 +57,22 @@ public final class ContextSnapshot {
             result.add("targetBlock", target);
         } else {
             result.add("targetBlock", JsonNull.INSTANCE);
+        }
+        if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY
+            && hit.entityHit instanceof EntityLivingBase) {
+            EntityLivingBase entity = (EntityLivingBase) hit.entityHit;
+            JsonObject target = new JsonObject();
+            String id = EntityList.getEntityString(entity);
+            target.addProperty(
+                "id",
+                id == null ? entity.getClass()
+                    .getName() : id);
+            target.addProperty("name", entity.getCommandSenderName());
+            target.addProperty("health", entity.getHealth());
+            target.addProperty("maxHealth", entity.getMaxHealth());
+            result.add("targetEntity", target);
+        } else {
+            result.add("targetEntity", JsonNull.INSTANCE);
         }
         return result;
     }
