@@ -76,6 +76,7 @@ src/main/resources/              mod metadata and packaged resources
 knowledge-packs/                 external knowledge profiles; never packaged into the mod JAR
 knowledge-catalog/               online profile catalog published with the repository
 knowledge-schema/                formal schemas for curated knowledge articles
+knowledge-workbench/             development-only coverage inventories; never read by Aurora
 gradle/                          Gradle wrapper support
 docs/                            design and development notes
 ```
@@ -83,7 +84,8 @@ docs/                            design and development notes
 `build/`, `run/`, and `.gradle/` are generated locally and are not part of the distributable mod. The old standalone Python bridge is intentionally not part of the current architecture.
 
 The current system boundary is documented in `docs/architecture.md`. The latest foundation review and known risks are
-recorded in `docs/code-audit-2026-09-23.md`.
+recorded in `docs/code-audit-2026-09-23.md`. The evidence hierarchy used while authoring the vanilla profile is
+documented in `docs/knowledge-sources.md`.
 
 ## Building and verification
 
@@ -104,6 +106,14 @@ The vanilla profile's generated recipe layer can be rebuilt by a development-onl
 ```
 
 The exporter is a catalog-building tool, not part of Aurora's runtime. It lives in the test source set and is never included in the distributable mod. It writes thematic `crafting/` and `smelting/` packages below `knowledge-packs/vanilla-1.7.10/knowledge`; curated guides remain alongside them.
+
+The complete vanilla 1.7.10 block checklist is rebuilt from the actual Minecraft block registry source, not from a modern wiki page or Aurora's runtime:
+
+```sh
+./gradlew --no-daemon generateVanillaBlockInventory
+```
+
+Its output lives in `knowledge-workbench/vanilla-1.7.10/blocks.json` and tracks which registered blocks already have curated v2 articles. It is development metadata and is never distributed as model context.
 
 ## Current scope
 

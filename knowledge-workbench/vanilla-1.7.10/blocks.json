@@ -1,0 +1,868 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "1.7.10",
+  "sourceLabel": "Minecraft Java Edition 1.7.10 — реестр блоков",
+  "sourceReference": "net.minecraft.block.Block.registerBlocks",
+  "sourceSha256": "22382ea784153e31f5bce5526a96a50b21c368f76a9a9d8fa7260150ac78252d",
+  "totalBlocks": 171,
+  "curatedBlocks": 2,
+  "blocks": [
+    {
+      "numericId": 0,
+      "registryName": "minecraft:air",
+      "status": "pending"
+    },
+    {
+      "numericId": 1,
+      "registryName": "minecraft:stone",
+      "status": "curated",
+      "articleId": "block.minecraft.stone"
+    },
+    {
+      "numericId": 2,
+      "registryName": "minecraft:grass",
+      "status": "pending"
+    },
+    {
+      "numericId": 3,
+      "registryName": "minecraft:dirt",
+      "status": "pending"
+    },
+    {
+      "numericId": 4,
+      "registryName": "minecraft:cobblestone",
+      "status": "pending"
+    },
+    {
+      "numericId": 5,
+      "registryName": "minecraft:planks",
+      "status": "pending"
+    },
+    {
+      "numericId": 6,
+      "registryName": "minecraft:sapling",
+      "status": "pending"
+    },
+    {
+      "numericId": 7,
+      "registryName": "minecraft:bedrock",
+      "status": "pending"
+    },
+    {
+      "numericId": 8,
+      "registryName": "minecraft:flowing_water",
+      "status": "pending"
+    },
+    {
+      "numericId": 9,
+      "registryName": "minecraft:water",
+      "status": "pending"
+    },
+    {
+      "numericId": 10,
+      "registryName": "minecraft:flowing_lava",
+      "status": "pending"
+    },
+    {
+      "numericId": 11,
+      "registryName": "minecraft:lava",
+      "status": "pending"
+    },
+    {
+      "numericId": 12,
+      "registryName": "minecraft:sand",
+      "status": "pending"
+    },
+    {
+      "numericId": 13,
+      "registryName": "minecraft:gravel",
+      "status": "pending"
+    },
+    {
+      "numericId": 14,
+      "registryName": "minecraft:gold_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 15,
+      "registryName": "minecraft:iron_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 16,
+      "registryName": "minecraft:coal_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 17,
+      "registryName": "minecraft:log",
+      "status": "pending"
+    },
+    {
+      "numericId": 18,
+      "registryName": "minecraft:leaves",
+      "status": "pending"
+    },
+    {
+      "numericId": 19,
+      "registryName": "minecraft:sponge",
+      "status": "pending"
+    },
+    {
+      "numericId": 20,
+      "registryName": "minecraft:glass",
+      "status": "pending"
+    },
+    {
+      "numericId": 21,
+      "registryName": "minecraft:lapis_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 22,
+      "registryName": "minecraft:lapis_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 23,
+      "registryName": "minecraft:dispenser",
+      "status": "pending"
+    },
+    {
+      "numericId": 24,
+      "registryName": "minecraft:sandstone",
+      "status": "pending"
+    },
+    {
+      "numericId": 25,
+      "registryName": "minecraft:noteblock",
+      "status": "pending"
+    },
+    {
+      "numericId": 26,
+      "registryName": "minecraft:bed",
+      "status": "pending"
+    },
+    {
+      "numericId": 27,
+      "registryName": "minecraft:golden_rail",
+      "status": "pending"
+    },
+    {
+      "numericId": 28,
+      "registryName": "minecraft:detector_rail",
+      "status": "pending"
+    },
+    {
+      "numericId": 29,
+      "registryName": "minecraft:sticky_piston",
+      "status": "pending"
+    },
+    {
+      "numericId": 30,
+      "registryName": "minecraft:web",
+      "status": "pending"
+    },
+    {
+      "numericId": 31,
+      "registryName": "minecraft:tallgrass",
+      "status": "pending"
+    },
+    {
+      "numericId": 32,
+      "registryName": "minecraft:deadbush",
+      "status": "pending"
+    },
+    {
+      "numericId": 33,
+      "registryName": "minecraft:piston",
+      "status": "pending"
+    },
+    {
+      "numericId": 34,
+      "registryName": "minecraft:piston_head",
+      "status": "pending"
+    },
+    {
+      "numericId": 35,
+      "registryName": "minecraft:wool",
+      "status": "pending"
+    },
+    {
+      "numericId": 36,
+      "registryName": "minecraft:piston_extension",
+      "status": "pending"
+    },
+    {
+      "numericId": 37,
+      "registryName": "minecraft:yellow_flower",
+      "status": "pending"
+    },
+    {
+      "numericId": 38,
+      "registryName": "minecraft:red_flower",
+      "status": "pending"
+    },
+    {
+      "numericId": 39,
+      "registryName": "minecraft:brown_mushroom",
+      "status": "pending"
+    },
+    {
+      "numericId": 40,
+      "registryName": "minecraft:red_mushroom",
+      "status": "pending"
+    },
+    {
+      "numericId": 41,
+      "registryName": "minecraft:gold_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 42,
+      "registryName": "minecraft:iron_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 43,
+      "registryName": "minecraft:double_stone_slab",
+      "status": "pending"
+    },
+    {
+      "numericId": 44,
+      "registryName": "minecraft:stone_slab",
+      "status": "pending"
+    },
+    {
+      "numericId": 45,
+      "registryName": "minecraft:brick_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 46,
+      "registryName": "minecraft:tnt",
+      "status": "pending"
+    },
+    {
+      "numericId": 47,
+      "registryName": "minecraft:bookshelf",
+      "status": "pending"
+    },
+    {
+      "numericId": 48,
+      "registryName": "minecraft:mossy_cobblestone",
+      "status": "pending"
+    },
+    {
+      "numericId": 49,
+      "registryName": "minecraft:obsidian",
+      "status": "pending"
+    },
+    {
+      "numericId": 50,
+      "registryName": "minecraft:torch",
+      "status": "pending"
+    },
+    {
+      "numericId": 51,
+      "registryName": "minecraft:fire",
+      "status": "pending"
+    },
+    {
+      "numericId": 52,
+      "registryName": "minecraft:mob_spawner",
+      "status": "pending"
+    },
+    {
+      "numericId": 53,
+      "registryName": "minecraft:oak_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 54,
+      "registryName": "minecraft:chest",
+      "status": "pending"
+    },
+    {
+      "numericId": 55,
+      "registryName": "minecraft:redstone_wire",
+      "status": "pending"
+    },
+    {
+      "numericId": 56,
+      "registryName": "minecraft:diamond_ore",
+      "status": "curated",
+      "articleId": "block.minecraft.diamond_ore"
+    },
+    {
+      "numericId": 57,
+      "registryName": "minecraft:diamond_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 58,
+      "registryName": "minecraft:crafting_table",
+      "status": "pending"
+    },
+    {
+      "numericId": 59,
+      "registryName": "minecraft:wheat",
+      "status": "pending"
+    },
+    {
+      "numericId": 60,
+      "registryName": "minecraft:farmland",
+      "status": "pending"
+    },
+    {
+      "numericId": 61,
+      "registryName": "minecraft:furnace",
+      "status": "pending"
+    },
+    {
+      "numericId": 62,
+      "registryName": "minecraft:lit_furnace",
+      "status": "pending"
+    },
+    {
+      "numericId": 63,
+      "registryName": "minecraft:standing_sign",
+      "status": "pending"
+    },
+    {
+      "numericId": 64,
+      "registryName": "minecraft:wooden_door",
+      "status": "pending"
+    },
+    {
+      "numericId": 65,
+      "registryName": "minecraft:ladder",
+      "status": "pending"
+    },
+    {
+      "numericId": 66,
+      "registryName": "minecraft:rail",
+      "status": "pending"
+    },
+    {
+      "numericId": 67,
+      "registryName": "minecraft:stone_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 68,
+      "registryName": "minecraft:wall_sign",
+      "status": "pending"
+    },
+    {
+      "numericId": 69,
+      "registryName": "minecraft:lever",
+      "status": "pending"
+    },
+    {
+      "numericId": 70,
+      "registryName": "minecraft:stone_pressure_plate",
+      "status": "pending"
+    },
+    {
+      "numericId": 71,
+      "registryName": "minecraft:iron_door",
+      "status": "pending"
+    },
+    {
+      "numericId": 72,
+      "registryName": "minecraft:wooden_pressure_plate",
+      "status": "pending"
+    },
+    {
+      "numericId": 73,
+      "registryName": "minecraft:redstone_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 74,
+      "registryName": "minecraft:lit_redstone_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 75,
+      "registryName": "minecraft:unlit_redstone_torch",
+      "status": "pending"
+    },
+    {
+      "numericId": 76,
+      "registryName": "minecraft:redstone_torch",
+      "status": "pending"
+    },
+    {
+      "numericId": 77,
+      "registryName": "minecraft:stone_button",
+      "status": "pending"
+    },
+    {
+      "numericId": 78,
+      "registryName": "minecraft:snow_layer",
+      "status": "pending"
+    },
+    {
+      "numericId": 79,
+      "registryName": "minecraft:ice",
+      "status": "pending"
+    },
+    {
+      "numericId": 80,
+      "registryName": "minecraft:snow",
+      "status": "pending"
+    },
+    {
+      "numericId": 81,
+      "registryName": "minecraft:cactus",
+      "status": "pending"
+    },
+    {
+      "numericId": 82,
+      "registryName": "minecraft:clay",
+      "status": "pending"
+    },
+    {
+      "numericId": 83,
+      "registryName": "minecraft:reeds",
+      "status": "pending"
+    },
+    {
+      "numericId": 84,
+      "registryName": "minecraft:jukebox",
+      "status": "pending"
+    },
+    {
+      "numericId": 85,
+      "registryName": "minecraft:fence",
+      "status": "pending"
+    },
+    {
+      "numericId": 86,
+      "registryName": "minecraft:pumpkin",
+      "status": "pending"
+    },
+    {
+      "numericId": 87,
+      "registryName": "minecraft:netherrack",
+      "status": "pending"
+    },
+    {
+      "numericId": 88,
+      "registryName": "minecraft:soul_sand",
+      "status": "pending"
+    },
+    {
+      "numericId": 89,
+      "registryName": "minecraft:glowstone",
+      "status": "pending"
+    },
+    {
+      "numericId": 90,
+      "registryName": "minecraft:portal",
+      "status": "pending"
+    },
+    {
+      "numericId": 91,
+      "registryName": "minecraft:lit_pumpkin",
+      "status": "pending"
+    },
+    {
+      "numericId": 92,
+      "registryName": "minecraft:cake",
+      "status": "pending"
+    },
+    {
+      "numericId": 93,
+      "registryName": "minecraft:unpowered_repeater",
+      "status": "pending"
+    },
+    {
+      "numericId": 94,
+      "registryName": "minecraft:powered_repeater",
+      "status": "pending"
+    },
+    {
+      "numericId": 95,
+      "registryName": "minecraft:stained_glass",
+      "status": "pending"
+    },
+    {
+      "numericId": 96,
+      "registryName": "minecraft:trapdoor",
+      "status": "pending"
+    },
+    {
+      "numericId": 97,
+      "registryName": "minecraft:monster_egg",
+      "status": "pending"
+    },
+    {
+      "numericId": 98,
+      "registryName": "minecraft:stonebrick",
+      "status": "pending"
+    },
+    {
+      "numericId": 99,
+      "registryName": "minecraft:brown_mushroom_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 100,
+      "registryName": "minecraft:red_mushroom_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 101,
+      "registryName": "minecraft:iron_bars",
+      "status": "pending"
+    },
+    {
+      "numericId": 102,
+      "registryName": "minecraft:glass_pane",
+      "status": "pending"
+    },
+    {
+      "numericId": 103,
+      "registryName": "minecraft:melon_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 104,
+      "registryName": "minecraft:pumpkin_stem",
+      "status": "pending"
+    },
+    {
+      "numericId": 105,
+      "registryName": "minecraft:melon_stem",
+      "status": "pending"
+    },
+    {
+      "numericId": 106,
+      "registryName": "minecraft:vine",
+      "status": "pending"
+    },
+    {
+      "numericId": 107,
+      "registryName": "minecraft:fence_gate",
+      "status": "pending"
+    },
+    {
+      "numericId": 108,
+      "registryName": "minecraft:brick_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 109,
+      "registryName": "minecraft:stone_brick_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 110,
+      "registryName": "minecraft:mycelium",
+      "status": "pending"
+    },
+    {
+      "numericId": 111,
+      "registryName": "minecraft:waterlily",
+      "status": "pending"
+    },
+    {
+      "numericId": 112,
+      "registryName": "minecraft:nether_brick",
+      "status": "pending"
+    },
+    {
+      "numericId": 113,
+      "registryName": "minecraft:nether_brick_fence",
+      "status": "pending"
+    },
+    {
+      "numericId": 114,
+      "registryName": "minecraft:nether_brick_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 115,
+      "registryName": "minecraft:nether_wart",
+      "status": "pending"
+    },
+    {
+      "numericId": 116,
+      "registryName": "minecraft:enchanting_table",
+      "status": "pending"
+    },
+    {
+      "numericId": 117,
+      "registryName": "minecraft:brewing_stand",
+      "status": "pending"
+    },
+    {
+      "numericId": 118,
+      "registryName": "minecraft:cauldron",
+      "status": "pending"
+    },
+    {
+      "numericId": 119,
+      "registryName": "minecraft:end_portal",
+      "status": "pending"
+    },
+    {
+      "numericId": 120,
+      "registryName": "minecraft:end_portal_frame",
+      "status": "pending"
+    },
+    {
+      "numericId": 121,
+      "registryName": "minecraft:end_stone",
+      "status": "pending"
+    },
+    {
+      "numericId": 122,
+      "registryName": "minecraft:dragon_egg",
+      "status": "pending"
+    },
+    {
+      "numericId": 123,
+      "registryName": "minecraft:redstone_lamp",
+      "status": "pending"
+    },
+    {
+      "numericId": 124,
+      "registryName": "minecraft:lit_redstone_lamp",
+      "status": "pending"
+    },
+    {
+      "numericId": 125,
+      "registryName": "minecraft:double_wooden_slab",
+      "status": "pending"
+    },
+    {
+      "numericId": 126,
+      "registryName": "minecraft:wooden_slab",
+      "status": "pending"
+    },
+    {
+      "numericId": 127,
+      "registryName": "minecraft:cocoa",
+      "status": "pending"
+    },
+    {
+      "numericId": 128,
+      "registryName": "minecraft:sandstone_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 129,
+      "registryName": "minecraft:emerald_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 130,
+      "registryName": "minecraft:ender_chest",
+      "status": "pending"
+    },
+    {
+      "numericId": 131,
+      "registryName": "minecraft:tripwire_hook",
+      "status": "pending"
+    },
+    {
+      "numericId": 132,
+      "registryName": "minecraft:tripwire",
+      "status": "pending"
+    },
+    {
+      "numericId": 133,
+      "registryName": "minecraft:emerald_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 134,
+      "registryName": "minecraft:spruce_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 135,
+      "registryName": "minecraft:birch_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 136,
+      "registryName": "minecraft:jungle_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 137,
+      "registryName": "minecraft:command_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 138,
+      "registryName": "minecraft:beacon",
+      "status": "pending"
+    },
+    {
+      "numericId": 139,
+      "registryName": "minecraft:cobblestone_wall",
+      "status": "pending"
+    },
+    {
+      "numericId": 140,
+      "registryName": "minecraft:flower_pot",
+      "status": "pending"
+    },
+    {
+      "numericId": 141,
+      "registryName": "minecraft:carrots",
+      "status": "pending"
+    },
+    {
+      "numericId": 142,
+      "registryName": "minecraft:potatoes",
+      "status": "pending"
+    },
+    {
+      "numericId": 143,
+      "registryName": "minecraft:wooden_button",
+      "status": "pending"
+    },
+    {
+      "numericId": 144,
+      "registryName": "minecraft:skull",
+      "status": "pending"
+    },
+    {
+      "numericId": 145,
+      "registryName": "minecraft:anvil",
+      "status": "pending"
+    },
+    {
+      "numericId": 146,
+      "registryName": "minecraft:trapped_chest",
+      "status": "pending"
+    },
+    {
+      "numericId": 147,
+      "registryName": "minecraft:light_weighted_pressure_plate",
+      "status": "pending"
+    },
+    {
+      "numericId": 148,
+      "registryName": "minecraft:heavy_weighted_pressure_plate",
+      "status": "pending"
+    },
+    {
+      "numericId": 149,
+      "registryName": "minecraft:unpowered_comparator",
+      "status": "pending"
+    },
+    {
+      "numericId": 150,
+      "registryName": "minecraft:powered_comparator",
+      "status": "pending"
+    },
+    {
+      "numericId": 151,
+      "registryName": "minecraft:daylight_detector",
+      "status": "pending"
+    },
+    {
+      "numericId": 152,
+      "registryName": "minecraft:redstone_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 153,
+      "registryName": "minecraft:quartz_ore",
+      "status": "pending"
+    },
+    {
+      "numericId": 154,
+      "registryName": "minecraft:hopper",
+      "status": "pending"
+    },
+    {
+      "numericId": 155,
+      "registryName": "minecraft:quartz_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 156,
+      "registryName": "minecraft:quartz_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 157,
+      "registryName": "minecraft:activator_rail",
+      "status": "pending"
+    },
+    {
+      "numericId": 158,
+      "registryName": "minecraft:dropper",
+      "status": "pending"
+    },
+    {
+      "numericId": 159,
+      "registryName": "minecraft:stained_hardened_clay",
+      "status": "pending"
+    },
+    {
+      "numericId": 160,
+      "registryName": "minecraft:stained_glass_pane",
+      "status": "pending"
+    },
+    {
+      "numericId": 161,
+      "registryName": "minecraft:leaves2",
+      "status": "pending"
+    },
+    {
+      "numericId": 162,
+      "registryName": "minecraft:log2",
+      "status": "pending"
+    },
+    {
+      "numericId": 163,
+      "registryName": "minecraft:acacia_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 164,
+      "registryName": "minecraft:dark_oak_stairs",
+      "status": "pending"
+    },
+    {
+      "numericId": 170,
+      "registryName": "minecraft:hay_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 171,
+      "registryName": "minecraft:carpet",
+      "status": "pending"
+    },
+    {
+      "numericId": 172,
+      "registryName": "minecraft:hardened_clay",
+      "status": "pending"
+    },
+    {
+      "numericId": 173,
+      "registryName": "minecraft:coal_block",
+      "status": "pending"
+    },
+    {
+      "numericId": 174,
+      "registryName": "minecraft:packed_ice",
+      "status": "pending"
+    },
+    {
+      "numericId": 175,
+      "registryName": "minecraft:double_plant",
+      "status": "pending"
+    }
+  ]
+}

@@ -20,6 +20,19 @@ tasks.named("check") {
     dependsOn(validateKnowledge)
 }
 
+tasks.register<JavaExec>("generateVanillaBlockInventory") {
+    group = "aurora knowledge"
+    description = "Builds the vanilla 1.7.10 block coverage checklist from Minecraft sources"
+    dependsOn("testClasses", "decompressDecompiledSources")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("com.aurora.gtnh.tools.VanillaBlockInventoryGenerator")
+    args(
+        layout.buildDirectory.file("rfg/minecraft-src/java/net/minecraft/block/Block.java").get().asFile.absolutePath,
+        layout.projectDirectory.dir("knowledge-packs/vanilla-1.7.10").asFile.absolutePath,
+        layout.projectDirectory.file("knowledge-workbench/vanilla-1.7.10/blocks.json").asFile.absolutePath,
+    )
+}
+
 tasks.named<JavaExec>("runClient") {
     if (project.hasProperty("auroraGenerateKnowledge")) {
         dependsOn("testClasses")
