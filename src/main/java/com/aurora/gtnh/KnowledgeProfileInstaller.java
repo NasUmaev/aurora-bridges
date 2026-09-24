@@ -40,6 +40,10 @@ final class KnowledgeProfileInstaller {
         ensureDirectory(downloads);
         ensureDirectory(profiles);
 
+        File destination = new File(profiles, profile.getId());
+        File previous = new File(profiles, "." + profile.getId() + ".previous");
+        recoverInterruptedActivation(profiles, destination, previous);
+
         File archive = new File(downloads, profile.getId() + "-profile-v" + profile.getVersion() + ".zip.part");
         listener.update("Скачиваю профиль " + profile.getId() + "…", 0.92D);
         download(archive, listener);
@@ -56,8 +60,6 @@ final class KnowledgeProfileInstaller {
             throw new IllegalStateException("В архиве отсутствует manifest.json профиля");
         }
         validateManifest(manifestFile);
-        File destination = new File(profiles, profile.getId());
-        File previous = new File(profiles, "." + profile.getId() + ".previous");
         deleteInside(profiles, previous);
         if (destination.exists()) SafeFileOps.moveDirectory(destination, previous);
         try {
@@ -80,6 +82,16 @@ final class KnowledgeProfileInstaller {
         }
         if (!archive.delete()) AuroraBridgeMod.LOG.debug("Could not remove downloaded knowledge archive {}", archive);
         listener.update("Профиль Minecraft 1.7.10 установлен", 0.99D);
+    }
+
+    static void recoverInterruptedActivation(File profiles, File destination, File previous) throws Exception {
+        requireDirectChild(profiles, destination);
+        requireDirectChild(profiles, previous);
+        if (!destination.exists() && previous.exists()) {
+            SafeFileOps.moveDirectory(previous, destination);
+            AuroraBridgeMod.LOG
+                .warn("Recovered Aurora knowledge profile after an interrupted activation: {}", destination);
+        }
     }
 
     private void download(File target, AuroraInstaller.ProgressListener listener) throws Exception {
@@ -199,6 +211,15 @@ final class KnowledgeProfileInstaller {
             for (File child : children) deleteInside(allowedRoot, child);
         }
         if (!target.delete()) throw new IllegalStateException("Не удалось удалить " + target);
+    }
+
+    private static void requireDirectChild(File allowedRoot, File target) throws Exception {
+        File canonicalRoot = allowedRoot.getCanonicalFile();
+        File canonicalParent = target.getCanonicalFile()
+            .getParentFile();
+        if (!canonicalRoot.equals(canonicalParent)) {
+            throw new SecurityException("Profile activation path is outside profiles");
+        }
     }
 
     private static void ensureDirectory(File directory) {

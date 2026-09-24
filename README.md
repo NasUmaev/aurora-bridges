@@ -10,7 +10,9 @@ Aurora is a client-side AI companion for **Minecraft 1.7.10 / GT New Horizons 2.
 4. Keep Minecraft open while Aurora downloads the official Ollama runtime and the configured model.
 5. When setup finishes, enter a world and press **V** to open Aurora directly, or **T** to open the combined chat.
 
-The first-install flow currently supports macOS 14 or newer. It downloads the signed Ollama application from `https://ollama.com`, verifies its Apple code signature, and stores it inside this Minecraft instance:
+The first-install flow currently supports macOS 14 or newer. It downloads a pinned official Ollama release from
+`github.com/ollama/ollama`, verifies the archive's pinned SHA-256 and the app's Apple Team ID and bundle identifier,
+then stores it inside this Minecraft instance:
 
 ```text
 minecraft/
@@ -115,6 +117,19 @@ The complete vanilla 1.7.10 block checklist is rebuilt from the actual Minecraft
 ```
 
 Its output lives in `knowledge-workbench/vanilla-1.7.10/blocks.json` and tracks which registered blocks already have curated v2 articles. It is development metadata and is never distributed as model context.
+
+### Preparing a knowledge-profile release
+
+Package the current validated profile and generate its SHA-256 file with:
+
+```sh
+./gradlew --no-daemon prepareKnowledgeRelease
+```
+
+The versioned ZIP and checksum are written to `build/knowledge-release`. Publish the ZIP under the matching
+`knowledge-v<profileVersion>` GitHub release first. Only after the asset is publicly downloadable should the bootstrap
+descriptor and `knowledge-catalog/catalog.json` be updated together with the generated checksum. This ordering keeps
+new installations on the last available profile if a release is interrupted.
 
 ## Current scope
 

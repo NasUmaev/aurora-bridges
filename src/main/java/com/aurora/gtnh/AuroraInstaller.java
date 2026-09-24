@@ -1,7 +1,9 @@
 package com.aurora.gtnh;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,6 +11,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Locale;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,7 +25,14 @@ public final class AuroraInstaller {
         void update(String status, double progress);
     }
 
-    private static final String OLLAMA_DOWNLOAD = "https://ollama.com/download/Ollama-darwin.zip";
+    private static final String OLLAMA_VERSION = "0.34.3";
+    private static final String OLLAMA_DOWNLOAD = "https://github.com/ollama/ollama/releases/download/v"
+        + OLLAMA_VERSION
+        + "/Ollama-darwin.zip";
+    private static final String OLLAMA_SHA256 = "2b9ebf0fbb30743510e81da091bae41b4ec33147f63118e852b2a67959bdb4a7";
+    private static final String OLLAMA_SIGNING_REQUIREMENT = "anchor apple generic"
+        + " and certificate leaf[subject.OU] = \"3MU9H2V9Y9\""
+        + " and identifier \"com.electron.ollama\"";
     private static final long MAX_RUNTIME_DOWNLOAD = 2L * 1024L * 1024L * 1024L;
     private static final JsonParser JSON = new JsonParser();
 
@@ -48,9 +59,10 @@ public final class AuroraInstaller {
             downloads.mkdirs();
             runtimeDirectory.mkdirs();
 
-            archive = new File(downloads, "Ollama-darwin.zip.part");
+            archive = new File(downloads, "Ollama-darwin-v" + OLLAMA_VERSION + ".zip.part");
             listener.update("Скачиваю официальный Ollama runtime…", 0.01D);
             downloadRuntime(archive, listener);
+            verifyRuntimeChecksum(archive);
 
             listener.update("Распаковываю Ollama…", 0.36D);
             extractWithDitto(archive, runtimeDirectory);
@@ -125,6 +137,21 @@ public final class AuroraInstaller {
         if (process.waitFor() != 0) throw new IllegalStateException("Не удалось распаковать Ollama: " + output);
     }
 
+    private static void verifyRuntimeChecksum(File archive) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] buffer = new byte[64 * 1024];
+        try (InputStream input = new BufferedInputStream(new FileInputStream(archive))) {
+            int count;
+            while ((count = input.read(buffer)) >= 0) digest.update(buffer, 0, count);
+        }
+        StringBuilder actual = new StringBuilder();
+        for (byte value : digest.digest()) actual.append(String.format(Locale.ROOT, "%02x", value & 0xff));
+        if (!OLLAMA_SHA256.equals(actual.toString())) {
+            if (!archive.delete()) AuroraBridgeMod.LOG.warn("Could not remove invalid Ollama archive {}", archive);
+            throw new SecurityException("Контрольная сумма Ollama runtime не совпала");
+        }
+    }
+
     private static void verifySignature(File app) throws Exception {
         if (!app.isDirectory()) throw new IllegalStateException("В архиве отсутствует Ollama.app");
         Process process = new ProcessBuilder(
@@ -132,6 +159,7 @@ public final class AuroraInstaller {
             "--verify",
             "--deep",
             "--strict",
+            "-R=" + OLLAMA_SIGNING_REQUIREMENT,
             app.getAbsolutePath()).redirectErrorStream(true)
                 .start();
         String output = read(process.getInputStream());
