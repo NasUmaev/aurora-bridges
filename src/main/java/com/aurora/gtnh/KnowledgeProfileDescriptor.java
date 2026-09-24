@@ -24,10 +24,10 @@ final class KnowledgeProfileDescriptor {
     static KnowledgeProfileDescriptor defaultProfile() {
         return create(
             "vanilla-1.7.10",
-            "0.2.0",
+            "0.3.0",
             "1.7.10",
-            TRUSTED_RELEASE_PREFIX + "knowledge-v0.2.0/vanilla-1.7.10-profile-v0.2.0.zip",
-            "e9e0cb68d955135bb73af448b10d53bf3695e5b265d1fa84a00e617b31c8932f");
+            TRUSTED_RELEASE_PREFIX + "knowledge-v0.3.0/vanilla-1.7.10-profile-v0.3.0.zip",
+            "13d106ee57fdbfe7f930d17d253ab3aaa828713716b981129eda56035ec4d9ec");
     }
 
     static KnowledgeProfileDescriptor fromJson(JsonObject json) {
